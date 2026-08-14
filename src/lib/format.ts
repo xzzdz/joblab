@@ -1,4 +1,4 @@
-import type { JobType, WorkMode } from "@/generated/prisma/enums";
+import type { JobStatus, JobType, WorkMode } from "@/generated/prisma/enums";
 
 /**
  * ใช้ `Record<JobType, string>` แทน object ธรรมดา
@@ -16,6 +16,12 @@ export const WORK_MODE_LABEL: Record<WorkMode, string> = {
   ONSITE: "เข้าออฟฟิศ",
   HYBRID: "ไฮบริด",
   REMOTE: "ทำงานทางไกล",
+};
+
+export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
+  DRAFT: "ฉบับร่าง",
+  PUBLISHED: "เผยแพร่อยู่",
+  CLOSED: "ปิดรับแล้ว",
 };
 
 const bahtFormatter = new Intl.NumberFormat("th-TH", {

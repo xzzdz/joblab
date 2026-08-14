@@ -43,6 +43,24 @@ npm run build        # build ผ่านจริง
 แล้วเปิดดูหน้าเว็บ/ยิง request จริงเพื่อดูผลลัพธ์ ไม่ใช่เดาจากโค้ด
 โดยเฉพาะ **HTTP status code** — หน้าตาเป็น 404 แต่ status เป็น 200 คือบั๊ก
 
+### ข้อควรระวังตอนทดสอบด้วย curl บน Windows
+
+**Git Bash ทำตัวอักษรไทยใน command-line argument พังเป็น `?`**
+เช่น `curl -F 'title=นักพัฒนา'` จะส่ง `?????????` ไปจริง ๆ
+
+ถ้าต้องทดสอบข้อมูลภาษาไทย ให้เลี่ยงการใส่ผ่าน argument:
+
+```bash
+# ❌ ค่าจะเพี้ยนเป็น ?
+curl -F 'title=นักพัฒนาเว็บ' http://localhost:3000/...
+
+# ✅ อ่านจากไฟล์ UTF-8 แทน
+curl -F 'title=<./thai-title.txt' http://localhost:3000/...
+```
+
+หรือเขียนสคริปต์ `.ts` แล้วรันด้วย `npx tsx` (ค่าอยู่ในไฟล์ ไม่ผ่าน shell)
+เคยเสียเวลาไล่หาบั๊กที่ไม่มีอยู่จริงเพราะเรื่องนี้มาแล้ว — **เห็น `????` ให้สงสัยเครื่องมือก่อน สงสัยแอปทีหลัง**
+
 ## กฎข้อที่ 4 — ความปลอดภัยคิดตั้งแต่เขียน ไม่ใช่ตามแก้ทีหลัง
 
 - Query ที่ผู้ใช้ทั่วไปเรียกได้ **ต้องกรอง `status = PUBLISHED` เสมอ** (ดู `src/lib/jobs.ts`)
@@ -107,6 +125,7 @@ branch ที่มีอยู่ตอนนี้: `main`, `phase-1-foundatio
 | Next.js | 16.3.1 | `params` / `searchParams` เป็น **Promise** ต้อง `await` ก่อนใช้ |
 | | | มี global type `PageProps<'/path'>` และ `LayoutProps<'/path'>` ใช้ได้เลยไม่ต้อง import |
 | | | **middleware เปลี่ยนชื่อเป็น `proxy`** — ไฟล์คือ `src/proxy.ts` ไม่ใช่ `middleware.ts` |
+| | | **`params` ใน Page ยังเป็น percent-encoded** ต้องผ่าน `decodeRouteParam()` ก่อนใช้ค้น DB เสมอ (Route Handler ได้ค่าที่ decode แล้ว — ไม่เหมือนกัน) |
 | React | 19.2.8 | ฟอร์มใช้ `useActionState` (ของเดิมชื่อ `useFormState`) |
 | Prisma | 7.9.1 | ต้องต่อ DB ผ่าน **driver adapter** (`@prisma/adapter-pg`) ไม่ใช่ใส่ url ตรง ๆ |
 | | | ตั้งค่าใน `prisma.config.ts` ไม่ใช่ใน `schema.prisma` |
