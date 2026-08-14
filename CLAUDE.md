@@ -50,6 +50,10 @@ npm run build        # build ผ่านจริง
 - ข้อมูลจากผู้ใช้ต้อง validate ด้วย Zod **ที่ฝั่ง server เสมอ** validate ฝั่ง client เป็นแค่ UX ไม่ใช่ security
 - ห้าม commit `.env` — ถ้าเพิ่มตัวแปรใหม่ ต้องเพิ่มใน `.env.example` ด้วย
 - ไม่บอกใบ้ข้อมูลภายในผ่านข้อความ error (เช่น "มีอยู่แต่ยังไม่เผยแพร่" → ให้ตอบ 404 เหมือนไม่มี)
+- **ก่อนรัน `deleteMany` / `updateMany` ต้อง `count` หรือ `findMany` ด้วยเงื่อนไขเดียวกันดูก่อนเสมอ**
+  ว่าจะโดนกี่แถวและแถวไหนบ้าง — เคยพลาดมาแล้วจริง: ใช้ `contains: "example.com"` ตั้งใจลบผู้ใช้ทดสอบ
+  แต่ไปแมตช์อีเมลเจ้าของบริษัทใน seed ด้วย แล้ว `onDelete: Cascade` ลบบริษัทกับประกาศงานตามไปอีก 4 ชุด
+  (กู้คืนได้เพราะ seed เขียนแบบ idempotent — อีกเหตุผลที่ seed ต้องรันซ้ำได้)
 
 ## กฎข้อที่ 5 — โครงสร้างโค้ด
 
@@ -83,11 +87,34 @@ src/generated/prisma/     โค้ดที่ Prisma สร้างให้ 
 |---|---|---|
 | Next.js | 16.3.1 | `params` / `searchParams` เป็น **Promise** ต้อง `await` ก่อนใช้ |
 | | | มี global type `PageProps<'/path'>` และ `LayoutProps<'/path'>` ใช้ได้เลยไม่ต้อง import |
-| React | 19.2.8 | |
+| | | **middleware เปลี่ยนชื่อเป็น `proxy`** — ไฟล์คือ `src/proxy.ts` ไม่ใช่ `middleware.ts` |
+| React | 19.2.8 | ฟอร์มใช้ `useActionState` (ของเดิมชื่อ `useFormState`) |
 | Prisma | 7.9.1 | ต้องต่อ DB ผ่าน **driver adapter** (`@prisma/adapter-pg`) ไม่ใช่ใส่ url ตรง ๆ |
 | | | ตั้งค่าใน `prisma.config.ts` ไม่ใช่ใน `schema.prisma` |
 | | | client ถูก generate เป็น TypeScript ไปที่ `src/generated/prisma` |
+| | | `prisma migrate dev` **รันใน terminal นี้ไม่ได้** (ต้องตอบ prompt) — ดูวิธีแทนด้านล่าง |
+| Auth.js | 5.0.0-beta.32 | augment type ต้องเขียน `declare module "@auth/core/jwt"` ไม่ใช่ `"next-auth/jwt"` |
+| Zod | v4 | ใช้ `z.email()` ไม่ใช่ `z.string().email()`, แตก error ด้วย `z.flattenError(err)` |
 | Tailwind | v4 | ตั้งค่าใน CSS ด้วย `@theme` ไม่มี `tailwind.config.js` |
+
+### วิธีสร้าง migration เมื่อ `prisma migrate dev` ใช้ไม่ได้
+
+`prisma migrate dev` เป็นคำสั่งแบบโต้ตอบ พอมี warning มันจะขอให้ยืนยัน แล้วล้มเหลวใน terminal นี้
+ให้สร้าง SQL เองแล้ว apply แทน (เป็นวิธีเดียวกับที่ใช้บน production อยู่แล้ว):
+
+```bash
+# 1. ดู SQL ที่จะถูกสร้างก่อน — อ่านให้เข้าใจว่าจะเกิดอะไรขึ้นกับข้อมูลเดิม
+npx prisma migrate diff --from-config-datasource --to-schema ./prisma/schema.prisma --script
+
+# 2. เขียนลงโฟลเดอร์ migration (ตั้งชื่อ <timestamp>_<คำอธิบาย>)
+mkdir -p prisma/migrations/<timestamp>_<ชื่อ>
+npx prisma migrate diff --from-config-datasource --to-schema ./prisma/schema.prisma --script \
+  -o prisma/migrations/<timestamp>_<ชื่อ>/migration.sql
+
+# 3. apply แล้ว generate client ใหม่
+npx prisma migrate deploy
+npx prisma generate
+```
 
 **ก่อนเขียนโค้ดที่เกี่ยวกับ Next.js หรือ Prisma ให้เปิดเอกสารในเครื่องก่อนเสมอ อย่าเขียนจากความจำ:**
 

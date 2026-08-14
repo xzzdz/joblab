@@ -1,9 +1,10 @@
 import "dotenv/config";
 
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hash } from "bcryptjs";
 
 import { PrismaClient } from "../src/generated/prisma/client";
-import { JobStatus, JobType, WorkMode } from "../src/generated/prisma/enums";
+import { JobStatus, JobType, UserRole, WorkMode } from "../src/generated/prisma/enums";
 
 // สคริปต์นี้รันด้วย tsx (นอก Next.js) เลยต้องสร้าง client เอง ไม่ใช้ singleton ใน src/lib/prisma.ts
 const connectionString = process.env.DATABASE_URL;
@@ -29,8 +30,17 @@ type SeedCompany = {
   name: string;
   website: string;
   description: string;
+  ownerEmail: string; // อีเมลของผู้ใช้ role EMPLOYER ที่เป็นเจ้าของบริษัทนี้
+  ownerName: string;
   jobs: SeedJob[];
 };
+
+/**
+ * รหัสผ่านของบัญชีตัวอย่างทั้งหมด
+ * เขียนไว้ตรง ๆ ได้เพราะเป็นข้อมูล dev เท่านั้น ไม่มีทางถูกใช้บน production
+ * (ไฟล์ seed ไม่เคยถูกรันตอน deploy จริง)
+ */
+const DEMO_PASSWORD = "Password123!";
 
 const companies: SeedCompany[] = [
   {
@@ -39,6 +49,8 @@ const companies: SeedCompany[] = [
     website: "https://siamdigital.example.com",
     description:
       "บริษัทรับพัฒนาซอฟต์แวร์ให้องค์กรขนาดกลาง เน้นงานฝั่งเว็บและระบบหลังบ้าน ทีมประมาณ 40 คน",
+    ownerEmail: "employer@joblab.dev", // บัญชีตัวอย่างสำหรับล็อกอินทดสอบฝั่งบริษัท
+    ownerName: "ปิยะพงษ์ ศรีสุข",
     jobs: [
       {
         slug: "frontend-developer-react-siam-digital",
@@ -87,6 +99,8 @@ const companies: SeedCompany[] = [
     website: "https://lannacommerce.example.com",
     description:
       "แพลตฟอร์มอีคอมเมิร์ซสำหรับร้านค้าท้องถิ่นภาคเหนือ ทีมเล็ก ทำงานแบบ remote เป็นหลัก",
+    ownerEmail: "owner@lannacommerce.example.com",
+    ownerName: "นภัสสร วงศ์คำ",
     jobs: [
       {
         slug: "fullstack-developer-lanna-commerce",
@@ -135,6 +149,8 @@ const companies: SeedCompany[] = [
     website: "https://andamanfintech.example.com",
     description:
       "สตาร์ทอัพด้านการเงิน ให้บริการระบบผ่อนชำระสำหรับธุรกิจ SME ผ่านการตรวจสอบมาตรฐาน ISO 27001",
+    ownerEmail: "owner@andamanfintech.example.com",
+    ownerName: "ธนกฤต ชัยวัฒน์",
     jobs: [
       {
         slug: "senior-frontend-engineer-andaman-fintech",
@@ -183,6 +199,8 @@ const companies: SeedCompany[] = [
     website: "https://isanagritech.example.com",
     description:
       "นำ IoT และข้อมูลดาวเทียมมาช่วยเกษตรกรวางแผนเพาะปลูก ทำงานร่วมกับสหกรณ์ในภาคอีสาน",
+    ownerEmail: "owner@isanagritech.example.com",
+    ownerName: "อารยา ภูมิใจ",
     jobs: [
       {
         slug: "data-engineer-isan-agritech",
@@ -231,6 +249,8 @@ const companies: SeedCompany[] = [
     website: "https://bangkokhealthcloud.example.com",
     description:
       "ระบบบริหารจัดการคลินิกและเวชระเบียนอิเล็กทรอนิกส์ ใช้งานอยู่ในคลินิกกว่า 300 แห่งทั่วประเทศ",
+    ownerEmail: "owner@bangkokhealthcloud.example.com",
+    ownerName: "ศิริพร ทองดี",
     jobs: [
       {
         slug: "nextjs-developer-bangkok-health-cloud",
@@ -271,14 +291,44 @@ function daysAgoToDate(days: number): Date {
 async function main() {
   console.log("เริ่ม seed ข้อมูล...");
 
+  // แฮชครั้งเดียวแล้วใช้ซ้ำ เพราะ bcrypt ตั้งใจออกแบบให้ช้า (นี่คือจุดแข็งของมัน)
+  // ถ้าแฮชใหม่ทุกบัญชี seed จะช้าขึ้นหลายเท่าโดยไม่ได้ประโยชน์อะไรกับข้อมูลทดสอบ
+  const demoPasswordHash = await hash(DEMO_PASSWORD, 10);
+
+  // บัญชีผู้สมัครงานตัวอย่าง
+  const seeker = await prisma.user.upsert({
+    where: { email: "seeker@joblab.dev" },
+    update: { name: "กิตติกร ใจดี", role: UserRole.SEEKER },
+    create: {
+      email: "seeker@joblab.dev",
+      name: "กิตติกร ใจดี",
+      role: UserRole.SEEKER,
+      passwordHash: demoPasswordHash,
+    },
+  });
+  console.log(`  ผู้สมัคร: ${seeker.email}`);
+
   for (const company of companies) {
-    const { jobs, ...companyData } = company;
+    const { jobs, ownerEmail, ownerName, ...companyData } = company;
+
+    // สร้างบัญชี EMPLOYER ของบริษัทนี้ก่อน เพราะ Company ต้องอ้างถึง User.id
+    const owner = await prisma.user.upsert({
+      where: { email: ownerEmail },
+      update: { name: ownerName, role: UserRole.EMPLOYER },
+      create: {
+        email: ownerEmail,
+        name: ownerName,
+        role: UserRole.EMPLOYER,
+        passwordHash: demoPasswordHash,
+      },
+    });
 
     // upsert = มีอยู่แล้วก็อัปเดต ไม่มีก็สร้าง → รัน seed ซ้ำกี่ครั้งก็ไม่พัง (idempotent)
+    // การใส่ ownerId ตรงนี้คือขั้น "backfill" ของบริษัทที่ seed ไว้ตั้งแต่ Phase 1
     const savedCompany = await prisma.company.upsert({
       where: { slug: companyData.slug },
-      update: companyData,
-      create: companyData,
+      update: { ...companyData, ownerId: owner.id },
+      create: { ...companyData, ownerId: owner.id },
     });
 
     for (const job of jobs) {
@@ -294,16 +344,24 @@ async function main() {
       });
     }
 
-    console.log(`  ${savedCompany.name}: ${jobs.length} ประกาศ`);
+    console.log(`  ${savedCompany.name}: ${jobs.length} ประกาศ (เจ้าของ ${owner.email})`);
   }
 
+  const totalUsers = await prisma.user.count();
   const totalCompanies = await prisma.company.count();
   const totalJobs = await prisma.job.count();
   const publishedJobs = await prisma.job.count({ where: { status: JobStatus.PUBLISHED } });
+  const orphanCompanies = await prisma.company.count({ where: { ownerId: null } });
 
   console.log(
-    `seed เสร็จแล้ว — ${totalCompanies} บริษัท, ${totalJobs} ประกาศ (เผยแพร่อยู่ ${publishedJobs})`
+    `\nseed เสร็จแล้ว — ${totalUsers} ผู้ใช้, ${totalCompanies} บริษัท, ${totalJobs} ประกาศ (เผยแพร่อยู่ ${publishedJobs})`
   );
+  if (orphanCompanies > 0) {
+    console.warn(`เตือน: มีบริษัท ${orphanCompanies} แห่งที่ยังไม่มีเจ้าของ`);
+  }
+  console.log(`\nบัญชีทดสอบ (รหัสผ่านเหมือนกันหมด: ${DEMO_PASSWORD})`);
+  console.log("  ผู้สมัครงาน : seeker@joblab.dev");
+  console.log("  บริษัท      : employer@joblab.dev");
 }
 
 main()

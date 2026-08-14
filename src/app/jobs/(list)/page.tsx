@@ -11,10 +11,16 @@ export const metadata: Metadata = {
  * ISR: สร้างหน้าเป็น static แล้วสร้างใหม่อัตโนมัติเมื่อผ่านไป 60 วินาที
  *
  * ถ้าไม่ใส่บรรทัดนี้ Next จะ prerender หน้านี้ตอน build แล้ว "แช่" ข้อมูลชุดนั้นไว้ตลอด
- * (ลองสังเกตผลลัพธ์ `npm run build` — จะเห็น /jobs เป็น ○ Static)
  * ผลคือ deploy ไปแล้วบริษัทลงประกาศใหม่ ผู้ใช้จะไม่เห็นจนกว่าจะ build ใหม่
  *
- * เร็วเท่า static แต่ข้อมูลไม่ค้างเกิน 60 วินาที — เหมาะกับหน้าลิสต์แบบนี้
+ * ⚠️ ตั้งแต่ Phase 2 บรรทัดนี้ "ยังไม่มีผลจริง"
+ * เพราะ SiteHeader ใน root layout เรียก auth() ซึ่งต้องอ่าน cookie
+ * การอ่าน cookie ทำให้ทั้ง route กลายเป็น dynamic — สังเกตได้จากผลลัพธ์ `npm run build`
+ * ที่ /jobs เปลี่ยนจาก ○ (Static) เป็น ƒ (Dynamic) หลังเพิ่ม header
+ *
+ * เก็บบรรทัดนี้ไว้เพราะยังเป็นสิ่งที่เราต้องการ วิธีแก้ให้กลับมาเป็น static
+ * คือแยกส่วนที่อ่าน cookie ออกไปไว้ใน <Suspense> แล้วเปิด Cache Components
+ * ซึ่งบันทึกไว้ใน Backlog ของ docs/PROGRESS.md แล้ว
  */
 export const revalidate = 60;
 
