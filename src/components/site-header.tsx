@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { UserRole } from "@/generated/prisma/enums";
 import { logoutAction } from "@/lib/actions/auth";
 import { getCurrentUser } from "@/lib/dal";
 
@@ -27,6 +28,13 @@ export async function SiteHeader() {
 
           {user ? (
             <>
+              {/* เมนูนี้โผล่เฉพาะบัญชีบริษัท — คนหางานไม่เห็นทางเข้าเลย
+                  แต่การซ่อนเมนูไม่ใช่ความปลอดภัย ด่านจริงอยู่ที่ requireRole ใน layout ของ /employer */}
+              {user.role === UserRole.EMPLOYER && (
+                <Link href="/employer/jobs" className="text-slate-600 hover:text-indigo-600">
+                  จัดการประกาศ
+                </Link>
+              )}
               <Link href="/account" className="text-slate-600 hover:text-indigo-600">
                 {user.name}
               </Link>

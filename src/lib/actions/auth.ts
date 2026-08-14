@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { Prisma } from "@/generated/prisma/client";
 import { signIn, signOut } from "@/lib/auth";
+import type { FormState } from "@/lib/form-state";
 import { prisma } from "@/lib/prisma";
 import { loginSchema, registerSchema } from "@/lib/validation/auth";
 
@@ -20,12 +21,8 @@ import { loginSchema, registerSchema } from "@/lib/validation/auth";
  * ใครก็ยิงเข้ามาได้ตรง ๆ ด้วยข้อมูลอะไรก็ได้ → ต้อง validate ทุกครั้ง ห้ามเชื่อ input
  */
 
-export type AuthFormState = {
-  /** ข้อความ error รวม (เช่น อีเมลหรือรหัสผ่านไม่ถูกต้อง) */
-  message?: string;
-  /** error ราย field สำหรับแสดงใต้ช่องกรอก */
-  fieldErrors?: Record<string, string[] | undefined>;
-};
+/** ใช้รูปร่างเดียวกับฟอร์มอื่นทั้งโปรเจค (ดู src/lib/form-state.ts) */
+export type AuthFormState = FormState;
 
 export async function loginAction(
   _prevState: AuthFormState,

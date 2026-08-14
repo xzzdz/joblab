@@ -9,6 +9,7 @@ import {
   formatSalaryRange,
 } from "@/lib/format";
 import { getPublishedJobBySlug } from "@/lib/jobs";
+import { decodeRouteParam } from "@/lib/route-params";
 
 /**
  * ตั้ง <title> และ meta description จากข้อมูลจริงของแต่ละประกาศ
@@ -17,7 +18,7 @@ import { getPublishedJobBySlug } from "@/lib/jobs";
  */
 export async function generateMetadata(props: PageProps<"/jobs/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  const job = await getPublishedJobBySlug(slug);
+  const job = await getPublishedJobBySlug(decodeRouteParam(slug));
 
   if (!job) return { title: "ไม่พบประกาศงาน" };
 
@@ -30,7 +31,9 @@ export async function generateMetadata(props: PageProps<"/jobs/[slug]">): Promis
 export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
   // ตั้งแต่ Next.js 15 เป็นต้นมา params เป็น Promise ต้อง await ก่อนใช้
   const { slug } = await props.params;
-  const job = await getPublishedJobBySlug(slug);
+
+  // ต้อง decode ก่อนเสมอ — slug ภาษาไทยมาถึงเป็น %E0%B8%99... (ดูคำอธิบายใน route-params.ts)
+  const job = await getPublishedJobBySlug(decodeRouteParam(slug));
 
   // ไม่เจอ (หรือเจอแต่ยังเป็น DRAFT/CLOSED) → ตอบ 404 ให้เหมือนกันทั้งสองกรณี
   // ถ้าแยกข้อความว่า "มีอยู่แต่ยังไม่เผยแพร่" เท่ากับบอกใบ้ข้อมูลภายในบริษัทให้คนนอกรู้
