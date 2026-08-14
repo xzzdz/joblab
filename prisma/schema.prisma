@@ -40,6 +40,17 @@ enum UserRole {
   EMPLOYER // บริษัท/ผู้ลงประกาศ
 }
 
+/// ขั้นตอนของใบสมัคร เรียงตามลำดับที่เกิดจริงในกระบวนการคัดเลือก
+/// ลำดับที่ประกาศตรงนี้มีผลกับการเรียงคอลัมน์บนบอร์ด (ดู APPLICATION_STATUS_ORDER)
+enum ApplicationStatus {
+  APPLIED // ส่งใบสมัครแล้ว รอบริษัทดู
+  SCREENING // บริษัทกำลังพิจารณา
+  INTERVIEW // นัดสัมภาษณ์
+  OFFER // ยื่นข้อเสนอแล้ว
+  REJECTED // บริษัทปฏิเสธ
+  WITHDRAWN // ผู้สมัครถอนใบสมัครเอง
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -57,6 +68,9 @@ model User {
 
   // ผู้ใช้ที่เป็น EMPLOYER จะผูกกับบริษัท 1 แห่ง (1-to-1)
   company Company?
+
+  // ใบสมัครที่ผู้ใช้คนนี้ส่งไป (เฉพาะ role SEEKER ที่จะมีข้อมูลตรงนี้)
+  applications Application[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,6 +123,8 @@ model Job {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  applications Application[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -129,4 +145,41 @@ model Job {
    * ต้องเปิด extension pg_trgm ก่อนใช้ ซึ่งเขียนไว้ในไฟล์ migration แล้ว
    */
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
+}
+
+model Application {
+  id String @id @default(cuid())
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  seekerId String
+  seeker   User   @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  coverLetter String?
+
+  /// ชื่อไฟล์ในที่เก็บ (สุ่มขึ้นมา ไม่ใช่ชื่อที่ผู้ใช้ตั้ง)
+  ///
+  /// ทำไมไม่เก็บชื่อไฟล์เดิมเป็นชื่อจริงบนดิสก์: ชื่อจากผู้ใช้เชื่อไม่ได้
+  /// ถ้ามีคนตั้งชื่อไฟล์ว่า `../../.env` แล้วเราเอาไปต่อ path ตรง ๆ จะเขียนทับไฟล์นอกโฟลเดอร์ได้
+  /// (ช่องโหว่ path traversal) — เก็บชื่อสุ่มไว้แทน แล้วค่อยโชว์ชื่อเดิมให้ผู้ใช้ดูอย่างเดียว
+  resumeKey String
+
+  /// ชื่อไฟล์ที่ผู้ใช้อัปโหลดมา ใช้แสดงผลและตั้งชื่อตอนดาวน์โหลดเท่านั้น
+  resumeName String
+
+  status ApplicationStatus @default(APPLIED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// กันสมัครงานเดิมซ้ำ — บังคับที่ระดับฐานข้อมูล ไม่ใช่แค่เช็คในโค้ด
+  /// เพราะการเช็คในโค้ดปิดช่อง race condition ไม่ได้ (กดปุ่มรัว ๆ สองที่พร้อมกัน)
+  @@unique([jobId, seekerId])
+
+  /// หน้า "ใบสมัครของฉัน" — กรองด้วย seekerId แล้วเรียงตามวันที่สมัคร
+  @@index([seekerId, createdAt])
+
+  /// บอร์ดของบริษัท — กรองด้วย jobId แล้วแยกตามสถานะ
+  @@index([jobId, status])
 }

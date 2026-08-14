@@ -1,10 +1,20 @@
 import "dotenv/config";
 
+import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 
 import { PrismaClient } from "../src/generated/prisma/client";
-import { JobStatus, JobType, UserRole, WorkMode } from "../src/generated/prisma/enums";
+import {
+  ApplicationStatus,
+  JobStatus,
+  JobType,
+  UserRole,
+  WorkMode,
+} from "../src/generated/prisma/enums";
 
 // สคริปต์นี้รันด้วย tsx (นอก Next.js) เลยต้องสร้าง client เอง ไม่ใช้ singleton ใน src/lib/prisma.ts
 const connectionString = process.env.DATABASE_URL;
@@ -282,10 +292,170 @@ const companies: SeedCompany[] = [
   },
 ];
 
+/**
+ * ผู้สมัครตัวอย่างเพิ่มเติม — มีไว้ให้บอร์ด Kanban มีการ์ดอยู่ครบทุกคอลัมน์
+ * จะได้เห็นภาพว่าหน้าตาตอนใช้งานจริงเป็นยังไง ไม่ใช่บอร์ดว่างเปล่า
+ */
+const DEMO_APPLICANTS: { email: string; name: string; status: ApplicationStatus; note: string }[] = [
+  {
+    email: "applicant.somchai@joblab.dev",
+    name: "สมชาย พัฒนกิจ",
+    status: ApplicationStatus.APPLIED,
+    note: "สนใจตำแหน่งนี้มากครับ มีประสบการณ์ React 2 ปี เคยทำระบบ dashboard ให้ลูกค้าองค์กร",
+  },
+  {
+    email: "applicant.nutcha@joblab.dev",
+    name: "ณัชชา เรืองวิทย์",
+    status: ApplicationStatus.SCREENING,
+    note: "เพิ่งจบใหม่แต่มีผลงานส่วนตัว 3 ชิ้นบน GitHub ถนัด TypeScript และ Next.js ค่ะ",
+  },
+  {
+    email: "applicant.thanapon@joblab.dev",
+    name: "ธนพล สุขสวัสดิ์",
+    status: ApplicationStatus.INTERVIEW,
+    note: "ทำงานสาย frontend มา 4 ปี เคยดูแล design system ของทีม 8 คน",
+  },
+  {
+    email: "applicant.pimchanok@joblab.dev",
+    name: "พิมพ์ชนก อารีย์",
+    status: ApplicationStatus.OFFER,
+    note: "สนใจงานที่ได้ทำ accessibility จริงจัง เคยแก้ระบบให้ผ่าน WCAG AA ทั้งเว็บ",
+  },
+  {
+    email: "applicant.kittisak@joblab.dev",
+    name: "กิตติศักดิ์ ทองใบ",
+    status: ApplicationStatus.REJECTED,
+    note: "ประสบการณ์ backend เป็นหลัก แต่อยากลองย้ายมาสาย frontend",
+  },
+];
+
+/** ไฟล์ PDF ขนาดเล็กที่สุดที่ยังเปิดได้จริง — ใช้เป็น resume ตัวอย่าง */
+const SAMPLE_PDF = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 120]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length 62>>stream
+BT /F1 14 Tf 30 60 Td (JobLab sample resume) Tj ET
+endstream
+endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R>>
+%%EOF
+`;
+
+/**
+ * เขียนไฟล์ resume ตัวอย่างลงที่เก็บเดียวกับที่แอปใช้
+ *
+ * ทำไมไม่ import saveResume จาก src/lib/storage.ts มาใช้ซ้ำ:
+ * ไฟล์นั้นมี `import "server-only"` ซึ่งออกแบบมาให้ทำงานในบริบทของ Next.js
+ * ส่วน seed รันด้วย tsx ธรรมดา อยู่นอก Next — เลยเขียนตรง ๆ ที่นี่แทน
+ * ต้องระวังว่าถ้าเปลี่ยนที่เก็บใน storage.ts ต้องมาแก้ตรงนี้ด้วย
+ */
+async function writeSampleResume(): Promise<string> {
+  const dir = path.join(process.cwd(), ".uploads", "resumes");
+  const key = `${randomUUID()}.pdf`;
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, key), SAMPLE_PDF, "utf8");
+  return key;
+}
+
 function daysAgoToDate(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() - days);
   return date;
+}
+
+/**
+ * ใส่ใบสมัครตัวอย่าง
+ *
+ * upsert ด้วย key `jobId_seekerId` ซึ่งมาจาก `@@unique([jobId, seekerId])` ใน schema
+ * ทำให้รัน seed ซ้ำได้โดยไม่เกิดใบสมัครซ้ำ และไม่สร้างไฟล์ resume ทิ้งขยะเพิ่มทุกรอบ
+ */
+async function seedApplications(seekerId: string, passwordHash: string) {
+  // ใช้ประกาศของ Siam Digital เป็นตัวอย่างบอร์ดที่มีผู้สมัครครบทุกขั้น
+  const boardJob = await prisma.job.findUnique({
+    where: { slug: "frontend-developer-react-siam-digital" },
+    select: { id: true, title: true },
+  });
+
+  if (!boardJob) {
+    console.warn("  ไม่พบประกาศตัวอย่างสำหรับบอร์ด ข้ามการ seed ใบสมัคร");
+    return;
+  }
+
+  let created = 0;
+
+  for (const applicant of DEMO_APPLICANTS) {
+    const user = await prisma.user.upsert({
+      where: { email: applicant.email },
+      update: { name: applicant.name, role: UserRole.SEEKER },
+      create: {
+        email: applicant.email,
+        name: applicant.name,
+        role: UserRole.SEEKER,
+        passwordHash,
+      },
+    });
+
+    const existing = await prisma.application.findUnique({
+      where: { jobId_seekerId: { jobId: boardJob.id, seekerId: user.id } },
+      select: { id: true },
+    });
+
+    // สร้างไฟล์ใหม่เฉพาะตอนที่ยังไม่มีใบสมัคร กัน .uploads บวมทุกครั้งที่รัน seed
+    if (!existing) {
+      await prisma.application.create({
+        data: {
+          jobId: boardJob.id,
+          seekerId: user.id,
+          coverLetter: applicant.note,
+          resumeKey: await writeSampleResume(),
+          resumeName: `resume-${user.name}.pdf`,
+          status: applicant.status,
+        },
+      });
+      created += 1;
+    } else {
+      // มีอยู่แล้วก็แค่ปรับสถานะให้ตรงกับที่ตั้งใจไว้ ไม่ต้องแตะไฟล์
+      await prisma.application.update({
+        where: { id: existing.id },
+        data: { status: applicant.status, coverLetter: applicant.note },
+      });
+    }
+  }
+
+  // ให้บัญชีทดสอบหลักมีใบสมัครของตัวเองด้วย จะได้เห็นหน้า /applications มีข้อมูล
+  const otherJobs = await prisma.job.findMany({
+    where: {
+      status: JobStatus.PUBLISHED,
+      slug: { in: ["nextjs-developer-bangkok-health-cloud", "fullstack-developer-lanna-commerce"] },
+    },
+    select: { id: true },
+  });
+
+  for (const [index, job] of otherJobs.entries()) {
+    const existing = await prisma.application.findUnique({
+      where: { jobId_seekerId: { jobId: job.id, seekerId } },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      await prisma.application.create({
+        data: {
+          jobId: job.id,
+          seekerId,
+          coverLetter: "สนใจตำแหน่งนี้ครับ แนบ resume มาให้พิจารณาแล้ว",
+          resumeKey: await writeSampleResume(),
+          resumeName: "resume-กิตติกร.pdf",
+          status: index === 0 ? ApplicationStatus.INTERVIEW : ApplicationStatus.APPLIED,
+        },
+      });
+      created += 1;
+    }
+  }
+
+  const total = await prisma.application.count();
+  console.log(`  ใบสมัคร: ${total} ใบ (สร้างใหม่รอบนี้ ${created} ใบ)`);
 }
 
 async function main() {
@@ -346,6 +516,8 @@ async function main() {
 
     console.log(`  ${savedCompany.name}: ${jobs.length} ประกาศ (เจ้าของ ${owner.email})`);
   }
+
+  await seedApplications(seeker.id, demoPasswordHash);
 
   const totalUsers = await prisma.user.count();
   const totalCompanies = await prisma.company.count();

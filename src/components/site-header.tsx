@@ -35,6 +35,12 @@ export async function SiteHeader() {
                   จัดการประกาศ
                 </Link>
               )}
+
+              {user.role === UserRole.SEEKER && (
+                <Link href="/applications" className="text-slate-600 hover:text-indigo-600">
+                  ใบสมัครของฉัน
+                </Link>
+              )}
               <Link href="/account" className="text-slate-600 hover:text-indigo-600">
                 {user.name}
               </Link>
