@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ApplySection } from "@/components/applications/apply-section";
 import {
   JOB_TYPE_LABEL,
   WORK_MODE_LABEL,
@@ -93,8 +94,10 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
         )}
       </section>
 
-      <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
-        ปุ่ม &ldquo;สมัครงาน&rdquo; จะมาใน Phase 5 (ต้องมีระบบสมาชิกก่อน)
+      <div className="mt-6">
+        {/* ต้องส่ง job.id ไม่ใช่ slug เพราะ id เป็นกุญแจจริงของแถวใน DB
+            ส่วน slug เปลี่ยนได้เมื่อบริษัทแก้ชื่อตำแหน่ง */}
+        <ApplySection jobId={job.id} />
       </div>
     </article>
   );

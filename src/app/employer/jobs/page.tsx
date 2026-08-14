@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { JobStatus, UserRole } from "@/generated/prisma/enums";
 import { deleteJob, setJobStatus } from "@/lib/actions/job";
+import { getApplicationCountsByJob } from "@/lib/applications";
 import { requireRole } from "@/lib/dal";
 import { getMyCompany, getMyJobs, type MyJobListItem } from "@/lib/employer";
 import {
@@ -20,7 +21,16 @@ export const metadata: Metadata = {
 
 export default async function EmployerJobsPage() {
   const user = await requireRole(UserRole.EMPLOYER);
-  const [company, jobs] = await Promise.all([getMyCompany(user.id), getMyJobs(user.id)]);
+
+  /**
+   * นับใบสมัครด้วย groupBy ครั้งเดียวสำหรับทุกประกาศ แล้วค่อยแจกให้แต่ละแถว
+   * ถ้าให้แต่ละแถวไปนับเอง จะเกิดปัญหา N+1 query — มี 50 ประกาศก็ยิง 51 query
+   */
+  const [company, jobs, applicationCounts] = await Promise.all([
+    getMyCompany(user.id),
+    getMyJobs(user.id),
+    getApplicationCountsByJob(user.id),
+  ]);
 
   if (!company) {
     return (
@@ -62,7 +72,7 @@ export default async function EmployerJobsPage() {
       ) : (
         <ul className="grid gap-3">
           {jobs.map((job) => (
-            <JobRow key={job.id} job={job} />
+            <JobRow key={job.id} job={job} applicationCount={applicationCounts.get(job.id) ?? 0} />
           ))}
         </ul>
       )}
@@ -70,7 +80,13 @@ export default async function EmployerJobsPage() {
   );
 }
 
-function JobRow({ job }: { job: MyJobListItem }) {
+function JobRow({
+  job,
+  applicationCount,
+}: {
+  job: MyJobListItem;
+  applicationCount: number;
+}) {
   return (
     <li className="rounded-lg border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -92,6 +108,13 @@ function JobRow({ job }: { job: MyJobListItem }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/employer/jobs/${job.id}/applications`}
+            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+          >
+            ผู้สมัคร {applicationCount}
+          </Link>
+
           {/* ดูหน้าจริงได้เฉพาะประกาศที่เผยแพร่อยู่ เพราะหน้าสาธารณะกรอง PUBLISHED เท่านั้น */}
           {job.status === JobStatus.PUBLISHED && (
             <Link

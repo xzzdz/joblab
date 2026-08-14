@@ -48,3 +48,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# ไฟล์ที่ผู้ใช้อัปโหลดตอน dev (resume) — ห้ามขึ้น git เด็ดขาด เป็นข้อมูลส่วนบุคคล
+.uploads/

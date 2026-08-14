@@ -1,4 +1,4 @@
-import type { JobStatus, JobType, WorkMode } from "@/generated/prisma/enums";
+import type { ApplicationStatus, JobStatus, JobType, WorkMode } from "@/generated/prisma/enums";
 
 /**
  * ใช้ `Record<JobType, string>` แทน object ธรรมดา
@@ -22,6 +22,25 @@ export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
   DRAFT: "ฉบับร่าง",
   PUBLISHED: "เผยแพร่อยู่",
   CLOSED: "ปิดรับแล้ว",
+};
+
+export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  APPLIED: "ส่งใบสมัครแล้ว",
+  SCREENING: "กำลังพิจารณา",
+  INTERVIEW: "นัดสัมภาษณ์",
+  OFFER: "ยื่นข้อเสนอ",
+  REJECTED: "ไม่ผ่าน",
+  WITHDRAWN: "ถอนใบสมัคร",
+};
+
+/** สีของแต่ละสถานะ แยกจาก label เพื่อให้เปลี่ยนธีมได้โดยไม่ยุ่งกับข้อความ */
+export const APPLICATION_STATUS_STYLE: Record<ApplicationStatus, string> = {
+  APPLIED: "bg-slate-100 text-slate-700",
+  SCREENING: "bg-amber-100 text-amber-800",
+  INTERVIEW: "bg-blue-100 text-blue-800",
+  OFFER: "bg-green-100 text-green-800",
+  REJECTED: "bg-red-100 text-red-800",
+  WITHDRAWN: "bg-slate-100 text-slate-500",
 };
 
 const bahtFormatter = new Intl.NumberFormat("th-TH", {
