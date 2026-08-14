@@ -35,9 +35,32 @@ enum JobStatus {
   CLOSED // ปิดรับแล้ว แต่ยังเก็บข้อมูลไว้
 }
 
+enum UserRole {
+  SEEKER // ผู้สมัครงาน
+  EMPLOYER // บริษัท/ผู้ลงประกาศ
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
+
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+  name  String
+
+  // เก็บ "ค่าแฮช" ของรหัสผ่านเท่านั้น ไม่เคยเก็บรหัสผ่านจริง
+  // ถ้าฐานข้อมูลหลุด คนได้ไฟล์ไปก็ยังเอารหัสผ่านคืนไม่ได้
+  passwordHash String
+
+  role UserRole @default(SEEKER)
+
+  // ผู้ใช้ที่เป็น EMPLOYER จะผูกกับบริษัท 1 แห่ง (1-to-1)
+  company Company?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
 model Company {
   id          String  @id @default(cuid())
@@ -46,6 +69,17 @@ model Company {
   logoUrl     String?
   website     String?
   description String?
+
+  // ฝั่งที่ถือ foreign key ของความสัมพันธ์ 1-to-1 กับ User
+  //
+  // ทำไมเป็น optional (`?`): ตอนเพิ่มฟิลด์นี้ ตาราง Company มีข้อมูล seed อยู่แล้ว 5 แถว
+  // ถ้าประกาศเป็น required ทันที Postgres จะเติมค่าให้แถวเดิมไม่ได้ → migration ล้ม
+  // ต้องรีเซ็ตฐานข้อมูลทิ้งเท่านั้น ซึ่งบน production ทำไม่ได้
+  //
+  // วิธีมาตรฐานคือทำ 3 ขั้น: เพิ่มแบบ optional → backfill ข้อมูลเดิม → ค่อยบังคับ required
+  // ตอนนี้อยู่ขั้นที่ 1-2 (seed backfill ให้แล้ว) ขั้นที่ 3 อยู่ใน Backlog
+  ownerId String? @unique
+  owner   User?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   jobs Job[] // ความสัมพันธ์ 1-to-many: 1 บริษัท มีได้หลายงาน
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Noto_Sans_Thai } from "next/font/google";
-import Link from "next/link";
+
+import { SiteHeader } from "@/components/site-header";
 
 import "./globals.css";
 
@@ -31,18 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${notoSansThai.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <header className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-            <Link href="/jobs" className="text-lg font-bold tracking-tight text-slate-900">
-              Job<span className="text-indigo-600">Lab</span>
-            </Link>
-            <nav className="text-sm text-slate-600">
-              <Link href="/jobs" className="hover:text-indigo-600">
-                ตำแหน่งงาน
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <SiteHeader />
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
 
