@@ -77,9 +77,28 @@ src/generated/prisma/     โค้ดที่ Prisma สร้างให้ 
 
 ## กฎข้อที่ 6 — Git
 
+**หนึ่ง Phase = หนึ่ง branch** แล้ว merge เข้า `main` เมื่อทำเสร็จและตรวจผ่าน
+
+```bash
+# เริ่ม Phase ใหม่ (แตกจาก main เสมอ)
+git checkout main
+git checkout -b phase-3-job-crud
+
+# ...ทำงาน แล้ว commit ระหว่างทางได้หลายครั้ง...
+
+# จบ Phase: ตรวจให้ผ่านก่อน แล้วค่อย merge
+npm run lint && npm run typecheck && npm run build
+git checkout main
+git merge --no-ff phase-3-job-crud
+```
+
+- ใช้ `--no-ff` เสมอ เพื่อให้เห็นใน history ว่างานก้อนไหนคือ Phase ไหน
+- ไม่ลบ branch เก่าทิ้ง — เก็บไว้เป็นร่องรอยว่าทำอะไรไปบ้าง
 - commit ทีละเรื่อง ข้อความบอก **"ทำไม"** ไม่ใช่แค่ "แก้ไฟล์อะไร"
-- จบแต่ละ Phase ให้ commit แล้วเขียนสรุปสั้น ๆ ไว้ใน PROGRESS.md
+- จบแต่ละ Phase ให้เขียนสรุปไว้ใน `docs/PROGRESS.md` ก่อน commit
 - ห้าม commit `.env`, `node_modules`, `src/generated`
+
+branch ที่มีอยู่ตอนนี้: `main`, `phase-1-foundation`, `phase-2-auth`
 
 ## เวอร์ชันที่ใช้ (สำคัญ — ต่างจากบทความเก่าในเน็ตเยอะ)
 
