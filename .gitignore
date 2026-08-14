@@ -32,10 +32,19 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
 
+# การตั้งค่าเฉพาะเครื่อง/เฉพาะ editor — ไม่ควรอยู่ใน repo
+# (.agents/skills/ กับ skills-lock.json commit ไว้ เพราะเป็นเอกสาร Prisma 7 ที่ต้องใช้อ้างอิงจริง)
+.claude/settings.local.json
+.claude/skills/
+.windsurf/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
