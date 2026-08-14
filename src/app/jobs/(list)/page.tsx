@@ -1,70 +1,102 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { JobCard } from "@/components/job-card";
-import { getPublishedJobs } from "@/lib/jobs";
+import { JobFiltersForm } from "@/components/job-filters";
+import { Pagination } from "@/components/pagination";
+import { getPublishedJobLocations, searchPublishedJobs } from "@/lib/jobs";
+import { hasActiveFilters, parseJobFilters } from "@/lib/validation/job-filters";
 
 export const metadata: Metadata = {
   title: "ตำแหน่งงานทั้งหมด",
 };
 
 /**
- * ISR: สร้างหน้าเป็น static แล้วสร้างใหม่อัตโนมัติเมื่อผ่านไป 60 วินาที
+ * หน้ารายการงาน + ค้นหา + กรอง + แบ่งหน้า
  *
- * ถ้าไม่ใส่บรรทัดนี้ Next จะ prerender หน้านี้ตอน build แล้ว "แช่" ข้อมูลชุดนั้นไว้ตลอด
- * ผลคือ deploy ไปแล้วบริษัทลงประกาศใหม่ ผู้ใช้จะไม่เห็นจนกว่าจะ build ใหม่
+ * เดิมหน้านี้เคยมี `export const revalidate = 60` เพื่อทำ ISR
+ * ตอนนี้เอาออกแล้ว เพราะหน้านี้อ่าน `searchParams` ซึ่งเป็นข้อมูลที่ต่างกันทุก request
+ * (แต่ละคนกรองไม่เหมือนกัน) จึงเก็บ HTML ชุดเดียวไว้ใช้ซ้ำไม่ได้อยู่แล้ว
+ * — เก็บบรรทัดที่ไม่มีผลไว้มีแต่จะทำให้คนอ่านโค้ดเข้าใจผิด
  *
- * ⚠️ ตั้งแต่ Phase 2 บรรทัดนี้ "ยังไม่มีผลจริง"
- * เพราะ SiteHeader ใน root layout เรียก auth() ซึ่งต้องอ่าน cookie
- * การอ่าน cookie ทำให้ทั้ง route กลายเป็น dynamic — สังเกตได้จากผลลัพธ์ `npm run build`
- * ที่ /jobs เปลี่ยนจาก ○ (Static) เป็น ƒ (Dynamic) หลังเพิ่ม header
- *
- * เก็บบรรทัดนี้ไว้เพราะยังเป็นสิ่งที่เราต้องการ วิธีแก้ให้กลับมาเป็น static
- * คือแยกส่วนที่อ่าน cookie ออกไปไว้ใน <Suspense> แล้วเปิด Cache Components
- * ซึ่งบันทึกไว้ใน Backlog ของ docs/PROGRESS.md แล้ว
+ * ถ้าอยากได้ความเร็วแบบ static คืน ต้องแคชที่ระดับ query ไม่ใช่ระดับหน้า (อยู่ใน Backlog)
  */
-export const revalidate = 60;
+export default async function JobsPage(props: PageProps<"/jobs">) {
+  const searchParams = await props.searchParams;
+  const filters = parseJobFilters(searchParams);
 
-/**
- * หน้ารายการงาน
- *
- * async component ตัวนี้รันบน server เท่านั้น จึงเรียก Prisma ได้ตรง ๆ
- * ไม่ต้องมี API route, ไม่ต้อง useEffect, ไม่ต้องจัดการ loading state เอง
- * และ connection string ก็ไม่มีทางหลุดไปฝั่ง browser
- */
-export default async function JobsPage() {
-  const jobs = await getPublishedJobs();
+  const [result, locations] = await Promise.all([
+    searchPublishedJobs(filters),
+    getPublishedJobLocations(),
+  ]);
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold text-slate-900">ตำแหน่งงานทั้งหมด</h1>
         <p className="mt-1 text-sm text-slate-600">
-          พบ {jobs.length} ตำแหน่งที่กำลังเปิดรับ
+          {result.total > 0
+            ? `พบ ${result.total.toLocaleString("th-TH")} ตำแหน่งที่ตรงกับเงื่อนไข`
+            : "ไม่พบตำแหน่งที่ตรงกับเงื่อนไข"}
         </p>
       </div>
 
-      {jobs.length === 0 ? (
-        <EmptyState />
+      <div className="mb-6">
+        <JobFiltersForm filters={filters} locations={locations} />
+      </div>
+
+      {result.jobs.length === 0 ? (
+        <EmptyState filtered={hasActiveFilters(filters)} />
       ) : (
-        <ul className="grid gap-4">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </ul>
+        <>
+          <ul className="grid gap-4">
+            {result.jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </ul>
+
+          <Pagination
+            filters={filters}
+            currentPage={result.currentPage}
+            totalPages={result.totalPages}
+            hasPrevious={result.hasPrevious}
+            hasNext={result.hasNext}
+          />
+        </>
       )}
     </div>
   );
 }
 
-/** อย่าลืมออกแบบหน้าตอน "ไม่มีข้อมูล" ด้วย — เป็นสถานะที่ผู้ใช้เจอจริงและมักถูกลืม */
-function EmptyState() {
+/**
+ * สถานะ "ไม่มีข้อมูล" มี 2 แบบที่ต้องแยกกัน
+ *   - กรองแล้วไม่เจอ → บอกให้ลองผ่อนเงื่อนไข
+ *   - ไม่มีข้อมูลเลยตั้งแต่แรก → บอกวิธีใส่ข้อมูลตัวอย่าง
+ * ถ้าใช้ข้อความเดียวกันทั้งสองกรณี ผู้ใช้จะไม่รู้ว่าควรทำอะไรต่อ
+ */
+function EmptyState({ filtered }: { filtered: boolean }) {
   return (
     <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-      <p className="font-medium text-slate-900">ยังไม่มีประกาศงาน</p>
-      <p className="mt-1 text-sm text-slate-600">
-        ถ้ากำลังรันบนเครื่องตัวเอง ลองรัน <code className="font-mono">npm run db:seed</code>{" "}
-        เพื่อใส่ข้อมูลตัวอย่าง
-      </p>
+      {filtered ? (
+        <>
+          <p className="font-medium text-slate-900">ไม่พบตำแหน่งที่ตรงกับเงื่อนไข</p>
+          <p className="mt-1 text-sm text-slate-600">ลองลดเงื่อนไขลง หรือล้างตัวกรองทั้งหมด</p>
+          <Link
+            href="/jobs"
+            className="mt-6 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            ล้างตัวกรอง
+          </Link>
+        </>
+      ) : (
+        <>
+          <p className="font-medium text-slate-900">ยังไม่มีประกาศงาน</p>
+          <p className="mt-1 text-sm text-slate-600">
+            ถ้ากำลังรันบนเครื่องตัวเอง ลองรัน <code className="font-mono">npm run db:seed</code>{" "}
+            เพื่อใส่ข้อมูลตัวอย่าง
+          </p>
+        </>
+      )}
     </div>
   );
 }
