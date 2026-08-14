@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: joblab-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: joblab
+      POSTGRES_PASSWORD: joblab
+      POSTGRES_DB: joblab
+    ports:
+      - "5433:5432"
+    volumes:
+      - joblab-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U joblab -d joblab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  joblab-pgdata:

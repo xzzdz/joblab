@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobLab
 
-## Getting Started
+เว็บประกาศงาน + ระบบติดตามใบสมัคร สร้างด้วย Next.js 16, TypeScript, PostgreSQL และ Prisma 7
 
-First, run the development server:
+> โปรเจคนี้ทำเพื่อฝึกและเก็บเป็นผลงาน แบ่งงานเป็น 6 Phase
+> ดูว่าทำถึงไหนแล้วได้ที่ [docs/PROGRESS.md](docs/PROGRESS.md)
+
+## เทคโนโลยีที่ใช้
+
+| ส่วน | ใช้ | เหตุผล |
+|---|---|---|
+| Framework | Next.js 16 (App Router) | Server Components ดึงข้อมูลจาก DB ได้โดยไม่ต้องมี API layer |
+| ภาษา | TypeScript (`strict: true`) | จับ error ตั้งแต่ตอนเขียน ไม่ใช่ตอนผู้ใช้เจอ |
+| ฐานข้อมูล | PostgreSQL 17 | รองรับ enum, transaction, full-text search และเจอในงานจริงมากที่สุด |
+| ORM | Prisma 7 | schema เป็นแหล่งความจริงเดียว และได้ type ตรงกับ DB อัตโนมัติ |
+| UI | Tailwind CSS v4 | |
+| Dev DB | Docker Compose | ไม่ต้องติดตั้ง Postgres ลงเครื่อง ลบทิ้งได้ทุกเมื่อ |
+
+## เริ่มใช้งาน
+
+**ต้องมีก่อน:** Node.js 20+ และ Docker Desktop
 
 ```bash
+# 1. ติดตั้ง dependencies
+npm install
+
+# 2. ตั้งค่า environment
+cp .env.example .env
+
+# 3. เปิดฐานข้อมูล (ต้องเปิด Docker Desktop ไว้ก่อน)
+npm run db:up
+
+# 4. สร้างตารางและใส่ข้อมูลตัวอย่าง
+npm run db:migrate
+npm run db:seed
+
+# 5. เปิดเว็บ
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## คำสั่งทั้งหมด
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| คำสั่ง | ทำอะไร |
+|---|---|
+| `npm run dev` | รัน dev server |
+| `npm run build` | build สำหรับ production |
+| `npm run lint` | ตรวจโค้ดด้วย ESLint |
+| `npm run typecheck` | ตรวจ type ด้วย TypeScript |
+| `npm run db:up` / `db:down` | เปิด/ปิด Postgres ใน Docker |
+| `npm run db:migrate` | สร้าง migration หลังแก้ `prisma/schema.prisma` |
+| `npm run db:seed` | ใส่ข้อมูลตัวอย่าง (รันซ้ำได้) |
+| `npm run db:reset` | ล้าง DB แล้ว migrate + seed ใหม่ |
+| `npm run db:studio` | เปิด Prisma Studio ดูข้อมูลใน DB |
 
-## Learn More
+## โครงสร้าง
 
-To learn more about Next.js, take a look at the following resources:
+```
+prisma/
+  schema.prisma           โครงสร้างฐานข้อมูล (แหล่งความจริงเดียว)
+  seed.ts                 ข้อมูลตัวอย่างสำหรับ dev
+src/
+  app/
+    jobs/(list)/          หน้ารายการงาน — อยู่ใน route group เพื่อไม่ให้ loading.tsx ครอบหน้า detail
+    jobs/[slug]/          หน้ารายละเอียดงาน
+  components/             React component ที่ใช้ซ้ำ
+  lib/
+    prisma.ts             Prisma Client singleton
+    jobs.ts               query ทั้งหมดที่เกี่ยวกับงาน
+    format.ts             ฟังก์ชันแปลงข้อมูลเป็นข้อความไทย
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## สถานะฟีเจอร์
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] ดูรายการตำแหน่งงานที่เปิดรับ
+- [x] ดูรายละเอียดงานและข้อมูลบริษัท
+- [ ] สมัครสมาชิก / ล็อกอิน (แยกผู้สมัคร–บริษัท)
+- [ ] บริษัทลงประกาศงาน
+- [ ] ค้นหาและกรองงาน
+- [ ] สมัครงาน + ติดตามสถานะแบบ Kanban

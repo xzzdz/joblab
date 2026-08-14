@@ -1,0 +1,84 @@
+// Prisma schema — "แหล่งความจริงเดียว" ของโครงสร้างฐานข้อมูล
+// แก้ไฟล์นี้ทีไร ต้องรัน `npm run db:migrate` เพื่อสร้าง SQL migration + generate client ใหม่เสมอ
+// docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums — Postgres รองรับ enum จริง ทำให้ DB ปฏิเสธค่าที่ไม่ถูกต้องตั้งแต่ชั้น DB
+// ไม่ใช่แค่เช็คในโค้ด
+// ---------------------------------------------------------------------------
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum WorkMode {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+enum JobStatus {
+  DRAFT // บริษัทยังเขียนไม่เสร็จ ยังไม่มีใครเห็น
+  PUBLISHED // ประกาศอยู่ ผู้สมัครเห็นได้
+  CLOSED // ปิดรับแล้ว แต่ยังเก็บข้อมูลไว้
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model Company {
+  id          String  @id @default(cuid())
+  slug        String  @unique // ใช้ทำ URL สวย ๆ เช่น /companies/acme-tech
+  name        String
+  logoUrl     String?
+  website     String?
+  description String?
+
+  jobs Job[] // ความสัมพันธ์ 1-to-many: 1 บริษัท มีได้หลายงาน
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  description String
+
+  location String
+  workMode WorkMode @default(ONSITE)
+  type     JobType  @default(FULL_TIME)
+
+  // เก็บเงินเดือนเป็น Int (บาท/เดือน) และให้ null ได้ เพราะบางประกาศไม่ระบุ
+  salaryMin Int?
+  salaryMax Int?
+
+  status      JobStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  // ฝั่ง "many" ของความสัมพันธ์ — เก็บ foreign key ไว้ที่นี่
+  // onDelete: Cascade = ถ้าบริษัทถูกลบ งานของบริษัทนั้นถูกลบตามอัตโนมัติโดย DB
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Index ตามรูปแบบ query ที่ใช้จริง: หน้า list กรอง status แล้วเรียงตาม publishedAt
+  @@index([status, publishedAt])
+  @@index([companyId])
+}
