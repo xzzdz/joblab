@@ -1,5 +1,7 @@
 # คู่มือ JobLab — อ่านครั้งเดียวเข้าใจทั้งโปรเจค
 
+> 🔗 เว็บจริง: **https://joblab.vercel.app/jobs**
+>
 > ไฟล์นี้อธิบาย **"ทำไม"** โค้ดถึงเป็นแบบนี้ ไม่ใช่แค่ "มีอะไรบ้าง"
 > ทำถึงไหนแล้ว → [PROGRESS.md](PROGRESS.md) · กฎการเขียน → [../CLAUDE.md](../CLAUDE.md) · ขึ้น production → [DEPLOY.md](DEPLOY.md)
 
