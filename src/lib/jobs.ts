@@ -138,6 +138,47 @@ export async function searchPublishedJobs(filters: JobFilters) {
 }
 
 /**
+ * ตัวเลขสรุปสำหรับหน้าแรก
+ *
+ * ยิงทั้ง 3 query พร้อมกันด้วย Promise.all — ไม่มีอันไหนต้องรอผลของอีกอัน
+ * ถ้าเขียนเรียงกันด้วย await ทีละบรรทัด เวลารวมจะเท่ากับผลบวกของทั้งสาม
+ */
+export async function getJobBoardStats() {
+  const [openJobs, companies, locations] = await Promise.all([
+    prisma.job.count({ where: { status: JobStatus.PUBLISHED } }),
+    prisma.company.count({ where: { jobs: { some: { status: JobStatus.PUBLISHED } } } }),
+    prisma.job.findMany({
+      where: { status: JobStatus.PUBLISHED },
+      distinct: ["location"],
+      select: { location: true },
+    }),
+  ]);
+
+  return { openJobs, companies, locations: locations.length };
+}
+
+/** ประกาศล่าสุดสำหรับโชว์บนหน้าแรก */
+export async function getLatestPublishedJobs(take: number) {
+  return prisma.job.findMany({
+    where: { status: JobStatus.PUBLISHED },
+    orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+    take,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      location: true,
+      workMode: true,
+      type: true,
+      salaryMin: true,
+      salaryMax: true,
+      publishedAt: true,
+      company: { select: { name: true, slug: true } },
+    },
+  });
+}
+
+/**
  * รายชื่อสถานที่ทำงานทั้งหมดที่มีประกาศเปิดรับอยู่ พร้อมจำนวน
  *
  * ใช้ groupBy ให้ Postgres นับให้ แทนที่จะดึงทุกแถวมานับใน JavaScript

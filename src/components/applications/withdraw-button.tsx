@@ -17,11 +17,11 @@ export function WithdrawButton({ applicationId }: { applicationId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="text-xs text-slate-500 underline hover:text-red-600 disabled:opacity-50"
+        className="text-xs text-ink-muted underline hover:text-critical disabled:opacity-50"
       >
         {isPending ? "กำลังถอน..." : "ถอนใบสมัคร"}
       </button>
-      {state.message && <p className="mt-1 text-xs text-red-600">{state.message}</p>}
+      {state.message && <p className="mt-1 text-xs text-critical">{state.message}</p>}
     </form>
   );
 }

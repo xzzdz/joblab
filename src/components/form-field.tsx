@@ -27,7 +27,7 @@ export function FormField({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-medium text-ink">
         {label}
       </label>
 
@@ -35,13 +35,13 @@ export function FormField({
         id,
         "aria-invalid": hasError,
         "aria-describedby": hasError ? errorId : undefined,
-        className: `mt-1 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
-          hasError ? "border-red-400 bg-red-50" : "border-slate-300 bg-white"
+        className: `mt-1 w-full border px-3 py-2 text-sm outline-none focus:border-accent ${
+          hasError ? "border-critical bg-critical-soft" : "border-line-strong bg-surface"
         }`,
       })}
 
       {hasError && (
-        <p id={errorId} className="mt-1 text-xs text-red-600">
+        <p id={errorId} className="mt-1 text-xs text-critical">
           {errors?.[0]}
         </p>
       )}

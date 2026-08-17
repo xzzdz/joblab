@@ -32,7 +32,7 @@ export function Pagination({
         ← ก่อนหน้า
       </PageLink>
 
-      <p className="text-sm text-slate-600">
+      <p className="label-mono text-ink-muted">
         หน้า {currentPage} จาก {totalPages}
       </p>
 
@@ -59,7 +59,7 @@ function PageLink({
   // เพราะ <a> ที่ไม่พาไปไหนยังถูก Tab เข้าถึงและ screen reader ยังอ่านว่าเป็นลิงก์ ทำให้สับสน
   if (disabled) {
     return (
-      <span className="rounded-md border border-slate-200 px-4 py-2 text-sm text-slate-300">
+      <span className="flex h-11 items-center border border-line px-5 text-sm text-line-strong">
         {children}
       </span>
     );
@@ -68,7 +68,7 @@ function PageLink({
   return (
     <Link
       href={href}
-      className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+      className="flex h-11 items-center border border-line-strong px-5 text-sm font-medium transition-colors hover:border-accent hover:text-accent"
     >
       {children}
     </Link>

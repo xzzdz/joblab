@@ -25,7 +25,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
 
       {state.message && (
         // role="alert" ทำให้ screen reader อ่านข้อความนี้ทันทีที่มันปรากฏ
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="bg-critical-soft px-3 py-2 text-sm text-critical">
           {state.message}
         </p>
       )}
@@ -51,7 +51,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+        className="w-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover disabled:opacity-60"
       >
         {isPending ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
       </button>

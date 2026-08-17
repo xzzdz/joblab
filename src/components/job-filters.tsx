@@ -29,10 +29,10 @@ export function JobFiltersForm({
   locations: { location: string; count: number }[];
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="border border-line bg-surface p-4">
       <form method="get" action="/jobs" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <label htmlFor="q" className="block text-xs font-medium text-slate-600">
+          <label htmlFor="q" className="label-mono block text-ink-muted">
             ค้นหา
           </label>
           <input
@@ -41,19 +41,19 @@ export function JobFiltersForm({
             type="search"
             defaultValue={filters.q ?? ""}
             placeholder="ชื่อตำแหน่ง หรือชื่อบริษัท"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            className="mt-1 h-11 w-full border border-line-strong bg-surface px-3 text-sm outline-none transition-colors placeholder:text-ink-muted focus:border-accent"
           />
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-xs font-medium text-slate-600">
+          <label htmlFor="location" className="label-mono block text-ink-muted">
             สถานที่
           </label>
           <select
             id="location"
             name="location"
             defaultValue={filters.location ?? ""}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            className="mt-1 h-11 w-full border border-line-strong bg-surface px-3 text-sm outline-none transition-colors placeholder:text-ink-muted focus:border-accent"
           >
             <option value="">ทุกที่</option>
             {locations.map((item) => (
@@ -65,14 +65,14 @@ export function JobFiltersForm({
         </div>
 
         <div>
-          <label htmlFor="workMode" className="block text-xs font-medium text-slate-600">
+          <label htmlFor="workMode" className="label-mono block text-ink-muted">
             รูปแบบการทำงาน
           </label>
           <select
             id="workMode"
             name="workMode"
             defaultValue={filters.workMode ?? ""}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            className="mt-1 h-11 w-full border border-line-strong bg-surface px-3 text-sm outline-none transition-colors placeholder:text-ink-muted focus:border-accent"
           >
             <option value="">ทั้งหมด</option>
             {Object.values(WorkMode).map((mode) => (
@@ -84,14 +84,14 @@ export function JobFiltersForm({
         </div>
 
         <div>
-          <label htmlFor="type" className="block text-xs font-medium text-slate-600">
+          <label htmlFor="type" className="label-mono block text-ink-muted">
             ประเภทงาน
           </label>
           <select
             id="type"
             name="type"
             defaultValue={filters.type ?? ""}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            className="mt-1 h-11 w-full border border-line-strong bg-surface px-3 text-sm outline-none transition-colors placeholder:text-ink-muted focus:border-accent"
           >
             <option value="">ทั้งหมด</option>
             {Object.values(JobType).map((type) => (
@@ -103,7 +103,7 @@ export function JobFiltersForm({
         </div>
 
         <div className="sm:col-span-2 lg:col-span-4">
-          <label htmlFor="salary" className="block text-xs font-medium text-slate-600">
+          <label htmlFor="salary" className="label-mono block text-ink-muted">
             เงินเดือนขั้นต่ำที่ต้องการ (บาท/เดือน)
           </label>
           <input
@@ -114,14 +114,14 @@ export function JobFiltersForm({
             step={5000}
             defaultValue={filters.salary ?? ""}
             placeholder="ไม่ระบุ"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            className="mt-1 h-11 w-full border border-line-strong bg-surface px-3 text-sm outline-none transition-colors placeholder:text-ink-muted focus:border-accent"
           />
         </div>
 
         <div className="flex items-end gap-2">
           <button
             type="submit"
-            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="h-11 w-full cursor-pointer bg-ink px-5 text-sm font-medium text-paper transition-colors hover:bg-accent"
           >
             ค้นหา
           </button>
@@ -170,22 +170,22 @@ function ActiveFilterChips({ filters }: { filters: JobFilters }) {
   }
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-      <span className="text-xs text-slate-500">กรองอยู่:</span>
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+      <span className="text-xs text-ink-muted">กรองอยู่:</span>
       {chips.map((chip) => (
         <Link
           key={chip.label}
           href={chip.clearHref}
-          className="group inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
+          className="group inline-flex items-center gap-1 bg-accent-soft px-2.5 py-1 text-xs text-accent hover:bg-accent-soft"
         >
           {chip.label}
-          <span aria-hidden className="text-indigo-400 group-hover:text-indigo-700">
+          <span aria-hidden className="text-accent group-hover:text-accent">
             ✕
           </span>
           <span className="sr-only">ลบตัวกรองนี้</span>
         </Link>
       ))}
-      <Link href="/jobs" className="ml-1 text-xs text-slate-500 underline hover:text-slate-700">
+      <Link href="/jobs" className="ml-1 text-xs text-ink-muted underline hover:text-ink">
         ล้างทั้งหมด
       </Link>
     </div>

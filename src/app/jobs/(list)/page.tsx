@@ -32,9 +32,15 @@ export default async function JobsPage(props: PageProps<"/jobs">) {
 
   return (
     <div>
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-900">ตำแหน่งงานทั้งหมด</h1>
-        <p className="mt-1 text-sm text-slate-600">
+      <div className="mb-6 border-b border-line pb-6">
+        <p className="label-mono text-accent">ค้นหางาน</p>
+        <h1
+          className="mt-3 font-bold tracking-tight"
+          style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", lineHeight: 1.1 }}
+        >
+          ตำแหน่งงานทั้งหมด
+        </h1>
+        <p className="mt-2 font-mono text-sm tabular-nums text-ink-muted">
           {result.total > 0
             ? `พบ ${result.total.toLocaleString("th-TH")} ตำแหน่งที่ตรงกับเงื่อนไข`
             : "ไม่พบตำแหน่งที่ตรงกับเงื่อนไข"}
@@ -76,22 +82,22 @@ export default async function JobsPage(props: PageProps<"/jobs">) {
  */
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
-    <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
+    <div className="border border-dashed border-line-strong bg-surface p-10 text-center">
       {filtered ? (
         <>
-          <p className="font-medium text-slate-900">ไม่พบตำแหน่งที่ตรงกับเงื่อนไข</p>
-          <p className="mt-1 text-sm text-slate-600">ลองลดเงื่อนไขลง หรือล้างตัวกรองทั้งหมด</p>
+          <p className="font-medium text-ink">ไม่พบตำแหน่งที่ตรงกับเงื่อนไข</p>
+          <p className="mt-1 text-sm text-ink-muted">ลองลดเงื่อนไขลง หรือล้างตัวกรองทั้งหมด</p>
           <Link
             href="/jobs"
-            className="mt-6 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="mt-6 inline-block bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover"
           >
             ล้างตัวกรอง
           </Link>
         </>
       ) : (
         <>
-          <p className="font-medium text-slate-900">ยังไม่มีประกาศงาน</p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="font-medium text-ink">ยังไม่มีประกาศงาน</p>
+          <p className="mt-1 text-sm text-ink-muted">
             ถ้ากำลังรันบนเครื่องตัวเอง ลองรัน <code className="font-mono">npm run db:seed</code>{" "}
             เพื่อใส่ข้อมูลตัวอย่าง
           </p>

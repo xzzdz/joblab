@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { UserRole } from "@/generated/prisma/enums";
 import { logoutAction } from "@/lib/actions/auth";
 import { getCurrentUser } from "@/lib/dal";
@@ -15,39 +16,36 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
 
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
-        <Link href="/jobs" className="text-lg font-bold tracking-tight text-slate-900">
-          Job<span className="text-indigo-600">Lab</span>
+    <header className="border-b border-line bg-paper">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <Link
+          href="/"
+          className="text-lg font-bold tracking-tight text-ink transition-colors hover:text-accent"
+        >
+          Job<span className="text-accent">Lab</span>
         </Link>
 
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/jobs" className="text-slate-600 hover:text-indigo-600">
-            ตำแหน่งงาน
-          </Link>
+        <nav className="flex items-center gap-1 sm:gap-2">
+          <NavLink href="/jobs">ตำแหน่งงาน</NavLink>
 
           {user ? (
             <>
               {/* เมนูนี้โผล่เฉพาะบัญชีบริษัท — คนหางานไม่เห็นทางเข้าเลย
                   แต่การซ่อนเมนูไม่ใช่ความปลอดภัย ด่านจริงอยู่ที่ requireRole ใน layout ของ /employer */}
               {user.role === UserRole.EMPLOYER && (
-                <Link href="/employer/jobs" className="text-slate-600 hover:text-indigo-600">
-                  จัดการประกาศ
-                </Link>
+                <NavLink href="/employer/jobs">จัดการประกาศ</NavLink>
               )}
 
               {user.role === UserRole.SEEKER && (
-                <Link href="/applications" className="text-slate-600 hover:text-indigo-600">
-                  ใบสมัครของฉัน
-                </Link>
+                <NavLink href="/applications">ใบสมัครของฉัน</NavLink>
               )}
-              <Link href="/account" className="text-slate-600 hover:text-indigo-600">
-                {user.name}
-              </Link>
+
+              <NavLink href="/account">{user.name}</NavLink>
+
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                  className="h-11 cursor-pointer px-3 text-sm text-ink-muted transition-colors hover:text-accent"
                 >
                   ออกจากระบบ
                 </button>
@@ -55,19 +53,34 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
-              <Link href="/login" className="text-slate-600 hover:text-indigo-600">
-                เข้าสู่ระบบ
-              </Link>
+              <NavLink href="/login">เข้าสู่ระบบ</NavLink>
               <Link
                 href="/register"
-                className="rounded-md bg-indigo-600 px-3 py-1.5 font-medium text-white hover:bg-indigo-700"
+                className="flex h-11 items-center bg-ink px-4 text-sm font-medium text-paper transition-colors hover:bg-accent"
               >
                 สมัครสมาชิก
               </Link>
             </>
           )}
+
+          <ThemeToggle />
         </nav>
       </div>
     </header>
+  );
+}
+
+/**
+ * ลิงก์ในแถบเมนู
+ * ความสูง 44px ตามขนาดขั้นต่ำที่นิ้วกดได้แม่นบนมือถือ — ต่ำกว่านี้คนจะกดพลาดบ่อย
+ */
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="flex h-11 items-center px-3 text-sm text-ink-muted transition-colors hover:text-accent"
+    >
+      {children}
+    </Link>
   );
 }

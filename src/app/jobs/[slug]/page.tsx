@@ -42,13 +42,13 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
 
   return (
     <article>
-      <Link href="/jobs" className="text-sm text-indigo-600 hover:underline">
+      <Link href="/jobs" className="text-sm text-accent hover:underline">
         ← กลับไปดูตำแหน่งงานทั้งหมด
       </Link>
 
-      <header className="mt-4 rounded-lg border border-slate-200 bg-white p-6">
-        <h1 className="text-2xl font-bold text-slate-900">{job.title}</h1>
-        <p className="mt-1 text-slate-600">{job.company.name}</p>
+      <header className="mt-4 border border-line bg-surface p-6">
+        <h1 className="text-2xl font-bold text-ink">{job.title}</h1>
+        <p className="mt-1 text-ink-muted">{job.company.name}</p>
 
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="สถานที่" value={job.location} />
@@ -58,7 +58,7 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
         </dl>
 
         {job.publishedAt && (
-          <p className="mt-5 text-xs text-slate-400">
+          <p className="mt-5 text-xs text-ink-muted">
             เผยแพร่เมื่อ{" "}
             {/* <time> ช่วยให้ screen reader และ search engine อ่านวันที่ได้ถูกต้อง */}
             <time dateTime={job.publishedAt.toISOString()}>
@@ -68,30 +68,38 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
         )}
       </header>
 
-      <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
-        <h2 className="font-semibold text-slate-900">รายละเอียดงาน</h2>
+      <section className="mt-6 border border-line bg-surface p-6">
+        <h2 className="font-semibold text-ink">รายละเอียดงาน</h2>
         {/* whitespace-pre-line ทำให้ \n ใน description กลายเป็นการขึ้นบรรทัดจริง */}
-        <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-700">
+        <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink">
           {job.description}
         </p>
       </section>
 
-      <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
-        <h2 className="font-semibold text-slate-900">เกี่ยวกับ {job.company.name}</h2>
+      <section className="mt-6 border border-line bg-surface p-6">
+        <h2 className="font-semibold text-ink">เกี่ยวกับ {job.company.name}</h2>
         {job.company.description && (
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">{job.company.description}</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-muted">{job.company.description}</p>
         )}
-        {job.company.website && (
-          <a
-            href={job.company.website}
-            target="_blank"
-            // noopener/noreferrer: กันหน้าปลายทางเข้าถึง window.opener ของเรา (ช่องโหว่ tabnabbing)
-            rel="noopener noreferrer"
-            className="mt-3 inline-block text-sm text-indigo-600 hover:underline"
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link
+            href={`/companies/${job.company.slug}`}
+            className="text-sm font-medium text-accent transition-colors hover:text-accent-hover"
           >
-            เว็บไซต์บริษัท ↗
-          </a>
-        )}
+            ดูตำแหน่งอื่นของบริษัทนี้ →
+          </Link>
+          {job.company.website && (
+            <a
+              href={job.company.website}
+              target="_blank"
+              // noopener/noreferrer: กันหน้าปลายทางเข้าถึง window.opener ของเรา (ช่องโหว่ tabnabbing)
+              rel="noopener noreferrer"
+              className="text-sm text-ink-muted transition-colors hover:text-accent"
+            >
+              เว็บไซต์บริษัท ↗
+            </a>
+          )}
+        </div>
       </section>
 
       <div className="mt-6">
@@ -106,8 +114,8 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium text-slate-900">{value}</dd>
+      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 text-sm font-medium text-ink">{value}</dd>
     </div>
   );
 }

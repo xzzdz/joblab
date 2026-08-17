@@ -22,14 +22,14 @@ export default async function NewJobPage() {
 
   return (
     <div className="max-w-2xl">
-      <Link href="/employer/jobs" className="text-sm text-indigo-600 hover:underline">
+      <Link href="/employer/jobs" className="text-sm text-accent hover:underline">
         ← กลับไปหน้าประกาศงาน
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-slate-900">ลงประกาศงานใหม่</h1>
-      <p className="mt-1 text-sm text-slate-600">ลงในชื่อ {company.name}</p>
+      <h1 className="mt-4 text-2xl font-bold text-ink">ลงประกาศงานใหม่</h1>
+      <p className="mt-1 text-sm text-ink-muted">ลงในชื่อ {company.name}</p>
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
+      <div className="mt-6 border border-line bg-surface p-6">
         <JobForm action={createJob} submitLabel="สร้างประกาศ" />
       </div>
     </div>

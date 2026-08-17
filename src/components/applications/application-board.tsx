@@ -67,7 +67,7 @@ export function ApplicationBoard({ applications }: { applications: JobApplicatio
   return (
     <div>
       {error && (
-        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="mb-4 bg-critical-soft px-3 py-2 text-sm text-critical">
           {error}
         </p>
       )}
@@ -82,22 +82,22 @@ export function ApplicationBoard({ applications }: { applications: JobApplicatio
           const columnIndex = COLUMNS.indexOf(status);
 
           return (
-            <section key={status} className="rounded-lg bg-slate-100 p-3">
-              <h3 className="flex items-center justify-between text-sm font-medium text-slate-700">
+            <section key={status} className="bg-surface-2 p-3">
+              <h3 className="flex items-center justify-between text-sm font-medium text-ink">
                 {APPLICATION_STATUS_LABEL[status]}
-                <span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-500">
+                <span className="bg-surface px-2 py-0.5 text-xs text-ink-muted">
                   {cards.length}
                 </span>
               </h3>
 
               <ul className="mt-3 grid gap-2">
                 {cards.map((card) => (
-                  <li key={card.id} className="rounded-md bg-white p-3 shadow-sm">
-                    <p className="text-sm font-medium text-slate-900">{card.seeker.name}</p>
-                    <p className="truncate text-xs text-slate-500">{card.seeker.email}</p>
+                  <li key={card.id} className="bg-surface p-3">
+                    <p className="text-sm font-medium text-ink">{card.seeker.name}</p>
+                    <p className="truncate text-xs text-ink-muted">{card.seeker.email}</p>
 
                     {card.coverLetter && (
-                      <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-600">
+                      <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink-muted">
                         {card.coverLetter}
                       </p>
                     )}
@@ -106,16 +106,16 @@ export function ApplicationBoard({ applications }: { applications: JobApplicatio
                       href={`/api/resumes/${card.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-block text-xs text-indigo-600 hover:underline"
+                      className="mt-2 inline-block text-xs text-accent hover:underline"
                     >
                       เปิด resume ↗
                     </a>
 
-                    <p className="mt-2 text-[11px] text-slate-400">
+                    <p className="mt-2 text-[11px] text-ink-muted">
                       สมัครเมื่อ {formatFullDate(card.createdAt)}
                     </p>
 
-                    <div className="mt-3 flex justify-between gap-2 border-t border-slate-100 pt-2">
+                    <div className="mt-3 flex justify-between gap-2 border-t border-line pt-2">
                       <MoveButton
                         label="←"
                         title={`ย้ายไป ${columnIndex > 0 ? APPLICATION_STATUS_LABEL[COLUMNS[columnIndex - 1]] : ""}`}
@@ -133,7 +133,7 @@ export function ApplicationBoard({ applications }: { applications: JobApplicatio
                 ))}
 
                 {cards.length === 0 && (
-                  <li className="rounded-md border border-dashed border-slate-300 p-4 text-center text-xs text-slate-400">
+                  <li className="border border-dashed border-line-strong p-4 text-center text-xs text-ink-muted">
                     ยังไม่มี
                   </li>
                 )}
@@ -144,13 +144,13 @@ export function ApplicationBoard({ applications }: { applications: JobApplicatio
       </div>
 
       {withdrawn.length > 0 && (
-        <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="text-sm font-medium text-slate-700">
+        <div className="mt-6 border border-line bg-surface p-4">
+          <h3 className="text-sm font-medium text-ink">
             ผู้สมัครถอนใบสมัครเอง ({withdrawn.length})
           </h3>
           <ul className="mt-2 grid gap-1">
             {withdrawn.map((card) => (
-              <li key={card.id} className="text-sm text-slate-500">
+              <li key={card.id} className="text-sm text-ink-muted">
                 {card.seeker.name} · {card.seeker.email}
               </li>
             ))}
@@ -179,7 +179,7 @@ function MoveButton({
       aria-label={title}
       disabled={disabled}
       onClick={onClick}
-      className="flex-1 rounded border border-slate-200 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
+      className="flex-1 border border-line py-1 text-xs text-ink-muted hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-30"
     >
       {label}
     </button>

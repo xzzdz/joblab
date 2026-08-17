@@ -34,12 +34,12 @@ export default async function EmployerJobsPage() {
 
   if (!company) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-        <p className="font-medium text-slate-900">ยังลงประกาศไม่ได้</p>
-        <p className="mt-1 text-sm text-slate-600">ต้องกรอกข้อมูลบริษัทให้เสร็จก่อน</p>
+      <div className="border border-dashed border-line-strong bg-surface p-10 text-center">
+        <p className="font-medium text-ink">ยังลงประกาศไม่ได้</p>
+        <p className="mt-1 text-sm text-ink-muted">ต้องกรอกข้อมูลบริษัทให้เสร็จก่อน</p>
         <Link
           href="/employer"
-          className="mt-6 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-6 inline-block bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover"
         >
           ไปกรอกข้อมูลบริษัท
         </Link>
@@ -51,23 +51,23 @@ export default async function EmployerJobsPage() {
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">ประกาศงาน</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-ink">ประกาศงาน</h1>
+          <p className="mt-1 text-sm text-ink-muted">
             {company.name} — ทั้งหมด {jobs.length} ประกาศ
           </p>
         </div>
         <Link
           href="/employer/jobs/new"
-          className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="shrink-0 bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover"
         >
           + ลงประกาศใหม่
         </Link>
       </div>
 
       {jobs.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="font-medium text-slate-900">ยังไม่มีประกาศงาน</p>
-          <p className="mt-1 text-sm text-slate-600">กด &ldquo;ลงประกาศใหม่&rdquo; เพื่อเริ่ม</p>
+        <div className="border border-dashed border-line-strong bg-surface p-10 text-center">
+          <p className="font-medium text-ink">ยังไม่มีประกาศงาน</p>
+          <p className="mt-1 text-sm text-ink-muted">กด &ldquo;ลงประกาศใหม่&rdquo; เพื่อเริ่ม</p>
         </div>
       ) : (
         <ul className="grid gap-3">
@@ -88,20 +88,20 @@ function JobRow({
   applicationCount: number;
 }) {
   return (
-    <li className="rounded-lg border border-slate-200 bg-white p-5">
+    <li className="border border-line bg-surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-slate-900">{job.title}</h2>
+            <h2 className="font-semibold text-ink">{job.title}</h2>
             <StatusBadge status={job.status} />
           </div>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-ink-muted">
             {job.location} · {WORK_MODE_LABEL[job.workMode]} · {JOB_TYPE_LABEL[job.type]}
           </p>
-          <p className="mt-1 text-sm text-slate-700">
+          <p className="mt-1 text-sm text-ink">
             {formatSalaryRange(job.salaryMin, job.salaryMax)}
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-ink-muted">
             แก้ไขล่าสุด {formatRelativeDate(job.updatedAt)}
             {job.status === JobStatus.PUBLISHED && ` · เผยแพร่ ${formatRelativeDate(job.publishedAt)}`}
           </p>
@@ -110,7 +110,7 @@ function JobRow({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/employer/jobs/${job.id}/applications`}
-            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+            className="border border-accent bg-accent-soft px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent-soft"
           >
             ผู้สมัคร {applicationCount}
           </Link>
@@ -119,7 +119,7 @@ function JobRow({
           {job.status === JobStatus.PUBLISHED && (
             <Link
               href={`/jobs/${job.slug}`}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+              className="border border-line-strong px-3 py-1.5 text-sm text-ink hover:bg-surface-2"
             >
               ดูหน้าจริง
             </Link>
@@ -127,7 +127,7 @@ function JobRow({
 
           <Link
             href={`/employer/jobs/${job.id}/edit`}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            className="border border-line-strong px-3 py-1.5 text-sm text-ink hover:bg-surface-2"
           >
             แก้ไข
           </Link>
@@ -159,7 +159,7 @@ function StatusActions({ job }: { job: MyJobListItem }) {
           <input type="hidden" name="status" value={JobStatus.PUBLISHED} />
           <button
             type="submit"
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+            className="bg-positive px-4 py-2 text-sm font-medium text-paper transition-colors hover:opacity-90"
           >
             เผยแพร่
           </button>
@@ -172,7 +172,7 @@ function StatusActions({ job }: { job: MyJobListItem }) {
           <input type="hidden" name="status" value={JobStatus.CLOSED} />
           <ConfirmSubmitButton
             message={`ปิดรับสมัคร "${job.title}" ใช่ไหม? ประกาศจะหายจากหน้าค้นหางานทันที`}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            className="border border-line-strong px-3 py-1.5 text-sm text-ink hover:bg-surface-2"
           >
             ปิดรับ
           </ConfirmSubmitButton>
@@ -185,7 +185,7 @@ function StatusActions({ job }: { job: MyJobListItem }) {
           <input type="hidden" name="status" value={JobStatus.PUBLISHED} />
           <button
             type="submit"
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            className="border border-line-strong px-3 py-1.5 text-sm text-ink hover:bg-surface-2"
           >
             เปิดรับใหม่
           </button>
@@ -197,7 +197,7 @@ function StatusActions({ job }: { job: MyJobListItem }) {
           <input type="hidden" name="jobId" value={job.id} />
           <ConfirmSubmitButton
             message={`ลบ "${job.title}" ถาวรใช่ไหม? กู้คืนไม่ได้`}
-            className="rounded-md px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+            className="px-3 py-1.5 text-sm text-critical hover:bg-critical-soft"
           >
             ลบ
           </ConfirmSubmitButton>
@@ -209,13 +209,13 @@ function StatusActions({ job }: { job: MyJobListItem }) {
 
 function StatusBadge({ status }: { status: JobStatus }) {
   const style = {
-    DRAFT: "bg-slate-100 text-slate-600",
-    PUBLISHED: "bg-emerald-100 text-emerald-700",
-    CLOSED: "bg-amber-100 text-amber-700",
+    DRAFT: "bg-surface-2 text-ink-muted",
+    PUBLISHED: "bg-positive-soft text-positive",
+    CLOSED: "bg-warning-soft text-warning-ink",
   }[status];
 
   return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
+    <span className={`shrink-0 px-2 py-0.5 text-xs font-medium ${style}`}>
       {JOB_STATUS_LABEL[status]}
     </span>
   );

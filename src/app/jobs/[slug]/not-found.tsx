@@ -6,14 +6,14 @@ import Link from "next/link";
  */
 export default function JobNotFound() {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-10 text-center">
-      <h1 className="text-xl font-bold text-slate-900">ไม่พบประกาศงานนี้</h1>
-      <p className="mt-2 text-sm text-slate-600">
+    <div className="border border-line bg-surface p-10 text-center">
+      <h1 className="text-xl font-bold text-ink">ไม่พบประกาศงานนี้</h1>
+      <p className="mt-2 text-sm text-ink-muted">
         ประกาศอาจถูกปิดรับไปแล้ว หรือลิงก์ที่ใช้ไม่ถูกต้อง
       </p>
       <Link
         href="/jobs"
-        className="mt-6 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        className="mt-6 inline-block bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover"
       >
         ดูตำแหน่งงานทั้งหมด
       </Link>
