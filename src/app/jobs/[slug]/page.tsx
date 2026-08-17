@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ApplySection } from "@/components/applications/apply-section";
+import { JobPostingSchema } from "@/components/job-posting-schema";
 import {
   JOB_TYPE_LABEL,
   WORK_MODE_LABEL,
@@ -42,6 +43,9 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
 
   return (
     <article>
+      {/* ข้อมูลสำหรับ Google Jobs — ไม่แสดงบนหน้าเว็บ แต่จำเป็นต่อการถูกค้นเจอ */}
+      <JobPostingSchema job={job} />
+
       <Link href="/jobs" className="text-sm text-accent hover:underline">
         ← กลับไปดูตำแหน่งงานทั้งหมด
       </Link>

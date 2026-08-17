@@ -19,16 +19,21 @@ export const metadata: Metadata = {
   title: "จัดการประกาศงาน",
 };
 
-export default async function EmployerJobsPage() {
+export default async function EmployerJobsPage(props: PageProps<"/employer/jobs">) {
   const user = await requireRole(UserRole.EMPLOYER);
+
+  // อ่านเลขหน้าจาก URL — ค่ามั่วหรือติดลบให้ตกมาเป็นหน้า 1 (หลักเดียวกับหน้าค้นหางาน)
+  const { page: rawPage } = await props.searchParams;
+  const parsedPage = Number.parseInt(Array.isArray(rawPage) ? rawPage[0] : (rawPage ?? "1"), 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.min(parsedPage, 1000) : 1;
 
   /**
    * นับใบสมัครด้วย groupBy ครั้งเดียวสำหรับทุกประกาศ แล้วค่อยแจกให้แต่ละแถว
    * ถ้าให้แต่ละแถวไปนับเอง จะเกิดปัญหา N+1 query — มี 50 ประกาศก็ยิง 51 query
    */
-  const [company, jobs, applicationCounts] = await Promise.all([
+  const [company, jobPage, applicationCounts] = await Promise.all([
     getMyCompany(user.id),
-    getMyJobs(user.id),
+    getMyJobs(user.id, page),
     getApplicationCountsByJob(user.id),
   ]);
 
@@ -53,7 +58,7 @@ export default async function EmployerJobsPage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">ประกาศงาน</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            {company.name} — ทั้งหมด {jobs.length} ประกาศ
+            {company.name} — ทั้งหมด {jobPage.total} ประกาศ
           </p>
         </div>
         <Link
@@ -64,19 +69,74 @@ export default async function EmployerJobsPage() {
         </Link>
       </div>
 
-      {jobs.length === 0 ? (
+      {jobPage.jobs.length === 0 ? (
         <div className="border border-dashed border-line-strong bg-surface p-10 text-center">
           <p className="font-medium text-ink">ยังไม่มีประกาศงาน</p>
           <p className="mt-1 text-sm text-ink-muted">กด &ldquo;ลงประกาศใหม่&rdquo; เพื่อเริ่ม</p>
         </div>
       ) : (
-        <ul className="grid gap-3">
-          {jobs.map((job) => (
-            <JobRow key={job.id} job={job} applicationCount={applicationCounts.get(job.id) ?? 0} />
-          ))}
-        </ul>
+        <>
+          <ul className="grid gap-3">
+            {jobPage.jobs.map((job) => (
+              <JobRow key={job.id} job={job} applicationCount={applicationCounts.get(job.id) ?? 0} />
+            ))}
+          </ul>
+
+          {/* โชว์เฉพาะตอนที่มีมากกว่า 1 หน้าจริง ๆ */}
+          {jobPage.totalPages > 1 && (
+            <nav
+              aria-label="เปลี่ยนหน้า"
+              className="mt-6 flex items-center justify-between gap-4"
+            >
+              <PageLink href={`/employer/jobs?page=${page - 1}`} disabled={!jobPage.hasPrevious}>
+                ← ก่อนหน้า
+              </PageLink>
+
+              <p className="label-mono text-ink-muted">
+                หน้า {jobPage.currentPage} จาก {jobPage.totalPages}
+              </p>
+
+              <PageLink href={`/employer/jobs?page=${page + 1}`} disabled={!jobPage.hasNext}>
+                ถัดไป →
+              </PageLink>
+            </nav>
+          )}
+        </>
       )}
     </div>
+  );
+}
+
+/**
+ * ปุ่มเปลี่ยนหน้า
+ *
+ * ปุ่มที่กดไม่ได้ใช้ <span> ไม่ใช่ <a> ที่ปิดการทำงาน
+ * เพราะ <a> ที่ไม่พาไปไหนยังถูก Tab เข้าถึงและ screen reader ยังอ่านว่าเป็นลิงก์ ทำให้สับสน
+ */
+function PageLink({
+  href,
+  disabled,
+  children,
+}: {
+  href: string;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
+  if (disabled) {
+    return (
+      <span className="flex h-11 items-center border border-line px-5 text-sm text-line-strong">
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className="flex h-11 items-center border border-line-strong px-5 text-sm font-medium transition-colors hover:border-accent hover:text-accent"
+    >
+      {children}
+    </Link>
   );
 }
 

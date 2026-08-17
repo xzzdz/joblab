@@ -523,14 +523,22 @@ async function main() {
   const totalCompanies = await prisma.company.count();
   const totalJobs = await prisma.job.count();
   const publishedJobs = await prisma.job.count({ where: { status: JobStatus.PUBLISHED } });
-  const orphanCompanies = await prisma.company.count({ where: { ownerId: null } });
+
+  /**
+   * เคยมีโค้ดตรงนี้ที่นับ "บริษัทที่ยังไม่มีเจ้าของ" แล้วเตือนถ้าเจอ
+   *
+   * ลบออกแล้วเพราะ `Company.ownerId` ถูกบังคับเป็น NOT NULL ที่ระดับฐานข้อมูลไปแล้ว
+   * แถวแบบนั้นสร้างไม่ได้อีก — TypeScript ยังฟ้องด้วยว่า `where: { ownerId: null }`
+   * เป็นเงื่อนไขที่เป็นไปไม่ได้
+   *
+   * บทเรียน: **เมื่อย้ายกฎไปให้ฐานข้อมูลบังคับได้แล้ว โค้ดที่คอยตรวจกฎนั้นเองควรถูกลบ**
+   * ไม่ใช่เก็บไว้ทั้งสองที่ เพราะโค้ดที่ไม่มีทางทำงานคือโค้ดที่ทำให้คนอ่านเข้าใจผิด
+   * ว่ายังมีกรณีนั้นเกิดขึ้นได้
+   */
 
   console.log(
     `\nseed เสร็จแล้ว — ${totalUsers} ผู้ใช้, ${totalCompanies} บริษัท, ${totalJobs} ประกาศ (เผยแพร่อยู่ ${publishedJobs})`
   );
-  if (orphanCompanies > 0) {
-    console.warn(`เตือน: มีบริษัท ${orphanCompanies} แห่งที่ยังไม่มีเจ้าของ`);
-  }
   console.log(`\nบัญชีทดสอบ (รหัสผ่านเหมือนกันหมด: ${DEMO_PASSWORD})`);
   console.log("  ผู้สมัครงาน : seeker@joblab.dev");
   console.log("  บริษัท      : employer@joblab.dev");

@@ -157,6 +157,32 @@ export async function getJobBoardStats() {
   return { openJobs, companies, locations: locations.length };
 }
 
+/**
+ * รายการหน้าสาธารณะทั้งหมดสำหรับ sitemap.xml
+ *
+ * เลือกเฉพาะ `slug` กับ `updatedAt` — ไม่ดึงฟิลด์อื่นเลย
+ * เพราะ sitemap อาจมีเป็นหมื่นรายการ ทุกฟิลด์ที่ไม่ได้ใช้คือข้อมูลที่ขนมาเปล่า ๆ
+ *
+ * บริษัทเอาเฉพาะที่มีประกาศเผยแพร่อยู่ ให้ตรงกับเงื่อนไขของหน้า /companies/[slug]
+ * ถ้าไม่ตรงกัน sitemap จะพา Google ไปเจอหน้า 404 ซึ่งเสียคะแนนความน่าเชื่อถือของเว็บ
+ */
+export async function getSitemapEntries() {
+  const [jobs, companies] = await Promise.all([
+    prisma.job.findMany({
+      where: { status: JobStatus.PUBLISHED },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.company.findMany({
+      where: { jobs: { some: { status: JobStatus.PUBLISHED } } },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+  ]);
+
+  return { jobs, companies };
+}
+
 /** ประกาศล่าสุดสำหรับโชว์บนหน้าแรก */
 export async function getLatestPublishedJobs(take: number) {
   return prisma.job.findMany({
