@@ -86,19 +86,32 @@ model Company {
 
   // ฝั่งที่ถือ foreign key ของความสัมพันธ์ 1-to-1 กับ User
   //
-  // ทำไมเป็น optional (`?`): ตอนเพิ่มฟิลด์นี้ ตาราง Company มีข้อมูล seed อยู่แล้ว 5 แถว
-  // ถ้าประกาศเป็น required ทันที Postgres จะเติมค่าให้แถวเดิมไม่ได้ → migration ล้ม
-  // ต้องรีเซ็ตฐานข้อมูลทิ้งเท่านั้น ซึ่งบน production ทำไม่ได้
+  // **ตอนนี้เป็น required แล้ว — และการมาถึงจุดนี้ใช้ 3 ขั้น**
   //
-  // วิธีมาตรฐานคือทำ 3 ขั้น: เพิ่มแบบ optional → backfill ข้อมูลเดิม → ค่อยบังคับ required
-  // ตอนนี้อยู่ขั้นที่ 1-2 (seed backfill ให้แล้ว) ขั้นที่ 3 อยู่ใน Backlog
-  ownerId String? @unique
-  owner   User?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  // ขั้น 1 (Phase 2): เพิ่มเป็น optional (`String?`)
+  //   เพราะตอนนั้นตารางมีข้อมูล seed อยู่แล้ว 5 แถว ถ้าประกาศ required ทันที
+  //   Postgres จะเติมค่าให้แถวเดิมไม่ได้ → migration ล้ม ต้องล้าง DB ทิ้งเท่านั้น
+  //   ซึ่งบน production ทำไม่ได้
+  // ขั้น 2 (Phase 2): backfill — ให้ seed ใส่เจ้าของให้ทุกบริษัทที่มีอยู่
+  // ขั้น 3 (ตอนนี้): ตรวจว่าไม่มีแถวไหนเป็น NULL แล้ว (`count(*) FILTER (WHERE "ownerId" IS NULL)` = 0)
+  //   จึงบังคับเป็น required ได้อย่างปลอดภัย
+  //
+  // ทำไมต้องบังคับ: บริษัทที่ไม่มีเจ้าของคือข้อมูลที่ไม่มีใครแก้ได้เลย
+  // ทุก query ฝั่งจัดการใช้ `ownerId` เป็นเงื่อนไขสิทธิ์ — แถวที่เป็น NULL จะหลุดจากทุกเงื่อนไข
+  // กลายเป็นข้อมูลกำพร้าที่ลบก็ไม่ได้ แก้ก็ไม่ได้
+  ownerId String @unique
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   jobs Job[] // ความสัมพันธ์ 1-to-many: 1 บริษัท มีได้หลายงาน
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  /// Index สำหรับค้นหาชื่อบริษัท (ILIKE '%คำค้น%')
+  /// เหตุผลเดียวกับ index ของ Job.title — ดูคำอธิบายที่นั่น
+  /// ตอนนี้มี 5 บริษัทจึงยังไม่เห็นผล แต่ query ค้นหาแตะตารางนี้ทุกครั้ง
+  /// ใส่ไว้ตอนที่ยังเล็กง่ายกว่ามารู้ตัวตอนช้าแล้ว
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
 model Job {

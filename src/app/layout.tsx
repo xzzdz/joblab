@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans_Thai } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { themeInitScript } from "@/components/theme-toggle";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "./globals.css";
 
@@ -31,10 +32,6 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const SITE_URL = "https://joblab.vercel.app";
-const SITE_DESCRIPTION =
-  "ค้นหาตำแหน่งงานจากบริษัทไทย สมัครพร้อมแนบ resume แล้วติดตามสถานะใบสมัครได้ทุกใบ";
-
 export const metadata: Metadata = {
   /**
    * metadataBase ทำให้ Next แปลง path สัมพัทธ์ใน og:image / canonical เป็น URL เต็มให้เอง
@@ -51,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "th_TH",
-    siteName: "JobLab",
+    siteName: SITE_NAME,
     title: "JobLab — หางานสายไอทีในไทย",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
@@ -78,8 +75,28 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
+        {/*
+          ลิงก์ข้ามไปเนื้อหาหลัก
+          มองไม่เห็นตอนปกติ แต่โผล่ขึ้นมาเป็นอันดับแรกเมื่อกด Tab
+
+          ทำไมต้องมี: คนที่ใช้คีย์บอร์ดหรือ screen reader ต้องกด Tab ผ่านเมนูทั้งแถบ
+          ทุกครั้งที่เปลี่ยนหน้า ก่อนจะถึงเนื้อหาที่เขาอยากอ่าน ลิงก์นี้ข้ามให้ในหนึ่งครั้ง
+          — เป็นของที่ผู้ใช้เมาส์ไม่เคยเห็นเลย แต่คนที่ต้องใช้จะรู้สึกต่างมาก
+        */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
+        >
+          ข้ามไปที่เนื้อหาหลัก
+        </a>
+
         <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">{children}</main>
+        <main
+          id="main-content"
+          className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6"
+        >
+          {children}
+        </main>
         <SiteFooter />
       </body>
     </html>

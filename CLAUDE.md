@@ -120,20 +120,20 @@ branch ที่มีอยู่ตอนนี้: `main`, `phase-1-foundatio
 
 ## เวอร์ชันที่ใช้ (สำคัญ — ต่างจากบทความเก่าในเน็ตเยอะ)
 
-| ของ | เวอร์ชัน | สิ่งที่ต่างจากที่เคยเห็นในบทความเก่า |
-|---|---|---|
-| Next.js | 16.3.1 | `params` / `searchParams` เป็น **Promise** ต้อง `await` ก่อนใช้ |
-| | | มี global type `PageProps<'/path'>` และ `LayoutProps<'/path'>` ใช้ได้เลยไม่ต้อง import |
-| | | **middleware เปลี่ยนชื่อเป็น `proxy`** — ไฟล์คือ `src/proxy.ts` ไม่ใช่ `middleware.ts` |
-| | | **`params` ใน Page ยังเป็น percent-encoded** ต้องผ่าน `decodeRouteParam()` ก่อนใช้ค้น DB เสมอ (Route Handler ได้ค่าที่ decode แล้ว — ไม่เหมือนกัน) |
-| React | 19.2.8 | ฟอร์มใช้ `useActionState` (ของเดิมชื่อ `useFormState`) |
-| Prisma | 7.9.1 | ต้องต่อ DB ผ่าน **driver adapter** (`@prisma/adapter-pg`) ไม่ใช่ใส่ url ตรง ๆ |
-| | | ตั้งค่าใน `prisma.config.ts` ไม่ใช่ใน `schema.prisma` |
-| | | client ถูก generate เป็น TypeScript ไปที่ `src/generated/prisma` |
-| | | `prisma migrate dev` **รันใน terminal นี้ไม่ได้** (ต้องตอบ prompt) — ดูวิธีแทนด้านล่าง |
-| Auth.js | 5.0.0-beta.32 | augment type ต้องเขียน `declare module "@auth/core/jwt"` ไม่ใช่ `"next-auth/jwt"` |
-| Zod | v4 | ใช้ `z.email()` ไม่ใช่ `z.string().email()`, แตก error ด้วย `z.flattenError(err)` |
-| Tailwind | v4 | ตั้งค่าใน CSS ด้วย `@theme` ไม่มี `tailwind.config.js` |
+| ของ      | เวอร์ชัน        | สิ่งที่ต่างจากที่เคยเห็นในบทความเก่า                                                                                                         |
+| -------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js  | 16.3.1        | `params` / `searchParams` เป็น **Promise** ต้อง `await` ก่อนใช้                                                                         |
+|          |               | มี global type `PageProps<'/path'>` และ `LayoutProps<'/path'>` ใช้ได้เลยไม่ต้อง import                                                   |
+|          |               | **middleware เปลี่ยนชื่อเป็น `proxy`** — ไฟล์คือ `src/proxy.ts` ไม่ใช่ `middleware.ts`                                                       |
+|          |               | **`params` ใน Page ยังเป็น percent-encoded** ต้องผ่าน `decodeRouteParam()` ก่อนใช้ค้น DB เสมอ (Route Handler ได้ค่าที่ decode แล้ว — ไม่เหมือนกัน) |
+| React    | 19.2.8        | ฟอร์มใช้ `useActionState` (ของเดิมชื่อ `useFormState`)                                                                                   |
+| Prisma   | 7.9.1         | ต้องต่อ DB ผ่าน **driver adapter** (`@prisma/adapter-pg`) ไม่ใช่ใส่ url ตรง ๆ                                                             |
+|          |               | ตั้งค่าใน `prisma.config.ts` ไม่ใช่ใน `schema.prisma`                                                                                    |
+|          |               | client ถูก generate เป็น TypeScript ไปที่ `src/generated/prisma`                                                                        |
+|          |               | `prisma migrate dev` **รันใน terminal นี้ไม่ได้** (ต้องตอบ prompt) — ดูวิธีแทนด้านล่าง                                                         |
+| Auth.js  | 5.0.0-beta.32 | augment type ต้องเขียน `declare module "@auth/core/jwt"` ไม่ใช่ `"next-auth/jwt"`                                                       |
+| Zod      | v4            | ใช้ `z.email()` ไม่ใช่ `z.string().email()`, แตก error ด้วย `z.flattenError(err)`                                                       |
+| Tailwind | v4            | ตั้งค่าใน CSS ด้วย `@theme` ไม่มี `tailwind.config.js`                                                                                    |
 
 ### วิธีสร้าง migration เมื่อ `prisma migrate dev` ใช้ไม่ได้
 
