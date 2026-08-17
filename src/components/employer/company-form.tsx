@@ -13,12 +13,12 @@ export function CompanyForm({ company }: { company: MyCompany | null }) {
   return (
     <form action={formAction} className="space-y-4">
       {state.message && (
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="bg-critical-soft px-3 py-2 text-sm text-critical">
           {state.message}
         </p>
       )}
       {state.success && (
-        <p role="status" className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <p role="status" className="bg-positive-soft px-3 py-2 text-sm text-positive">
           {state.success}
         </p>
       )}
@@ -66,7 +66,7 @@ export function CompanyForm({ company }: { company: MyCompany | null }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+        className="bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover disabled:opacity-60"
       >
         {isPending ? "กำลังบันทึก..." : company ? "บันทึกการแก้ไข" : "สร้างข้อมูลบริษัท"}
       </button>

@@ -19,7 +19,7 @@ export default async function EmployerHomePage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-slate-900">ข้อมูลบริษัท</h1>
+      <h1 className="text-2xl font-bold text-ink">ข้อมูลบริษัท</h1>
 
       {company ? (
         <div className="mt-4 grid grid-cols-3 gap-3">
@@ -28,19 +28,19 @@ export default async function EmployerHomePage() {
           <StatCard label="ปิดรับแล้ว" value={stats.CLOSED} tone="closed" />
         </div>
       ) : (
-        <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="mt-4 bg-warning-soft px-3 py-2 text-sm text-warning-ink">
           ยังไม่มีข้อมูลบริษัท — กรอกฟอร์มด้านล่างให้เสร็จก่อน จึงจะลงประกาศงานได้
         </p>
       )}
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
+      <div className="mt-6 border border-line bg-surface p-6">
         <CompanyForm company={company} />
       </div>
 
       {company && (
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-ink-muted">
           หน้าประกาศงานของคุณ:{" "}
-          <Link href="/employer/jobs" className="text-indigo-600 hover:underline">
+          <Link href="/employer/jobs" className="text-accent hover:underline">
             จัดการประกาศงาน →
           </Link>
         </p>
@@ -59,15 +59,15 @@ function StatCard({
   tone: "published" | "draft" | "closed";
 }) {
   const toneClass = {
-    published: "text-emerald-700",
-    draft: "text-slate-700",
-    closed: "text-slate-400",
+    published: "text-positive",
+    draft: "text-ink",
+    closed: "text-ink-muted",
   }[tone];
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 text-center">
+    <div className="border border-line bg-surface p-4 text-center">
       <p className={`text-2xl font-bold ${toneClass}`}>{value}</p>
-      <p className="mt-0.5 text-xs text-slate-500">{label}</p>
+      <p className="mt-0.5 text-xs text-ink-muted">{label}</p>
     </div>
   );
 }

@@ -28,24 +28,24 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-slate-900">บัญชีของฉัน</h1>
+      <h1 className="text-2xl font-bold text-ink">บัญชีของฉัน</h1>
 
-      <dl className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
+      <dl className="mt-6 border border-line bg-surface p-6">
         <Row label="ชื่อ" value={user.name} />
         <Row label="อีเมล" value={user.email} />
         <Row label="ประเภทบัญชี" value={ROLE_LABEL[user.role]} />
       </dl>
 
       {user.role === UserRole.EMPLOYER && (
-        <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
-          <h2 className="font-semibold text-slate-900">บริษัทของคุณ</h2>
+        <div className="mt-6 border border-line bg-surface p-6">
+          <h2 className="font-semibold text-ink">บริษัทของคุณ</h2>
           {company ? (
             <dl className="mt-4">
               <Row label="ชื่อบริษัท" value={company.name} />
               <Row label="ประกาศงานทั้งหมด" value={`${company._count.jobs} ประกาศ`} />
             </dl>
           ) : (
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-ink-muted">
               ยังไม่ได้สร้างข้อมูลบริษัท — จะทำใน Phase 3
             </p>
           )}
@@ -57,9 +57,9 @@ export default async function AccountPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b border-slate-100 py-3 last:border-0">
-      <dt className="text-sm text-slate-500">{label}</dt>
-      <dd className="text-sm font-medium text-slate-900">{value}</dd>
+    <div className="flex justify-between border-b border-line py-3 last:border-0">
+      <dt className="text-sm text-ink-muted">{label}</dt>
+      <dd className="text-sm font-medium text-ink">{value}</dd>
     </div>
   );
 }

@@ -1,12 +1,151 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: var(--font-noto-sans-thai);
-  --font-mono: var(--font-geist-mono);
+/**
+ * ธีม JobLab — แนว Swiss Editorial
+ *
+ * แนวคิด: หมึกบนกระดาษ + สัญญาณสีเดียว
+ * ลำดับความสำคัญสร้างด้วย "ขนาดและน้ำหนักตัวอักษร" ไม่ใช่ด้วยเฉดเทาหลายระดับ
+ * สีส้มถูกใช้เท่าที่จำเป็นจริง ๆ เพื่อให้มันยัง "ดัง" เมื่อปรากฏ
+ *
+ * ทุกสีผ่านการคำนวณ contrast ตามมาตรฐาน WCAG แล้ว ไม่ได้เลือกด้วยสายตา
+ * (ตัวเลขกำกับไว้ท้ายบรรทัด — ข้อความปกติต้อง ≥ 4.5:1, ขอบ/องค์ประกอบ UI ต้อง ≥ 3:1)
+ */
+
+/* บอก Tailwind ว่า `dark:` หมายถึงตอนที่ <html data-theme="dark"> */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  /* พื้นผิว */
+  --paper: #fafaf9; /* พื้นหลังของหน้า */
+  --surface: #ffffff; /* พื้นการ์ด */
+  --surface-2: #f5f5f4; /* พื้นรอง เช่นคอลัมน์บอร์ด */
+
+  /* หมึก */
+  --ink: #18181b; /* 16.96:1 บนกระดาษ */
+  --ink-muted: #57534e; /* 7.30:1  บนกระดาษ */
+
+  /* เส้น */
+  --line: #e7e5e4; /* เส้นคั่นบาง ๆ เพื่อความสวยงาม */
+  --line-strong: #78716c; /* 4.59:1 — ใช้กับขอบช่องกรอกและปุ่ม ต้องมองเห็นชัด */
+
+  /**
+   * สัญญาณสีเดียวของทั้งเว็บ
+   *
+   * ระบบดีไซน์แนะนำ #EA580C มาตอนแรก แต่คำนวณแล้วได้แค่ 3.56:1 บนพื้นขาว
+   * ใช้เป็นตัวอักษรหรือพื้นปุ่มที่มีตัวหนังสือขาวไม่ได้ จึงเลื่อนลงมาหนึ่งเฉด
+   */
+  --accent: #c2410c; /* 5.18:1 บนพื้นขาว */
+  --accent-hover: #9a3412; /* 7.31:1 */
+  --accent-on: #ffffff; /* ตัวอักษรบนพื้นสีสัญญาณ */
+  --accent-soft: #fff7ed; /* พื้นอ่อนสำหรับป้าย */
+
+  /* สถานะ */
+  --positive: #15803d;
+  --positive-soft: #f0fdf4;
+  --critical: #b91c1c;
+  --critical-soft: #fef2f2;
+  --warning-soft: #fffbeb;
+  --warning-ink: #92400e;
 }
 
-/* Phase 1 ทำเฉพาะโหมดสว่างก่อน — dark mode อยู่ใน backlog (ดู docs/PROGRESS.md) */
+/**
+ * โหมดมืด
+ *
+ * ไม่ได้แค่กลับขาวเป็นดำ — สีส้มถูกเปลี่ยนเป็นเฉดสว่างขึ้น
+ * เพราะสีเดิม (#C2410C) บนพื้นมืดจะมืดเกินไปจนอ่านไม่ออก
+ */
+[data-theme="dark"] {
+  --paper: #0c0a09;
+  --surface: #1c1917;
+  --surface-2: #292524;
+
+  --ink: #fafaf9; /* 18.92:1 บนพื้นมืด */
+  --ink-muted: #a8a29e; /* 7.83:1  บนพื้นมืด */
+
+  --line: #292524;
+  --line-strong: #78716c; /* 4.35:1 บนพื้นมืด */
+
+  --accent: #fb923c; /* 8.73:1 บนพื้นมืด */
+  --accent-hover: #fdba74;
+  --accent-on: #0c0a09; /* พื้นสว่าง → ตัวอักษรต้องเป็นสีเข้ม */
+  --accent-soft: #291a10;
+
+  --positive: #4ade80;
+  --positive-soft: #14261a;
+  --critical: #fca5a5;
+  --critical-soft: #2a1414;
+  --warning-soft: #2a2010;
+  --warning-ink: #fcd34d;
+}
+
+/* ผูก CSS variable เข้ากับ utility ของ Tailwind — ใช้ได้เลยเช่น bg-paper text-ink border-line */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-on: var(--accent-on);
+  --color-accent-soft: var(--accent-soft);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-ink: var(--warning-ink);
+
+  --font-sans: var(--font-plex-thai);
+  --font-mono: var(--font-plex-mono);
+
+  /* มุมเกือบตรงตามแนว Swiss — ไม่ใช่ 0 เพราะจอความละเอียดสูงจะดูคมจนบาดตา */
+  --radius-card: 2px;
+}
+
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--paper);
+  color: var(--ink);
+  /* ปรับสีทีละนิดตอนสลับโหมด ไม่ให้กระพริบใส่ตา */
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/**
+ * ตัวเลข ป้าย และข้อมูลกำกับ ใช้ฟอนต์ monospace
+ * เป็นลายเซ็นของธีมนี้ และทำให้ตัวเลขเรียงตรงกันเป็นคอลัมน์อ่านง่าย
+ */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/**
+ * เส้นโฟกัสของคีย์บอร์ด
+ *
+ * กำหนดรวมที่เดียวเพื่อให้ทุกอันหน้าตาเหมือนกัน และ **ห้ามลบทิ้ง**
+ * คนที่ใช้คีย์บอร์ดอย่างเดียวจะไม่รู้เลยว่าตอนนี้อยู่ตรงไหนถ้าไม่มีเส้นนี้
+ * `:focus-visible` แสดงเฉพาะตอนใช้คีย์บอร์ด กดเมาส์จะไม่ขึ้น
+ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/**
+ * เคารพการตั้งค่าของผู้ใช้ที่ขอให้ลดการเคลื่อนไหว
+ * บางคนเวียนหัวหรือคลื่นไส้จากภาพเคลื่อนไหว ไม่ใช่แค่เรื่องความชอบ
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

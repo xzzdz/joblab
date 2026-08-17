@@ -25,9 +25,9 @@ export default function AppError({
   }, [error]);
 
   return (
-    <div className="mx-auto max-w-lg rounded-lg border border-slate-200 bg-white p-10 text-center">
-      <h1 className="text-xl font-bold text-slate-900">เกิดข้อผิดพลาด</h1>
-      <p className="mt-2 text-sm text-slate-600">
+    <div className="mx-auto max-w-lg border border-line bg-surface p-10 text-center">
+      <h1 className="text-xl font-bold text-ink">เกิดข้อผิดพลาด</h1>
+      <p className="mt-2 text-sm text-ink-muted">
         ระบบขัดข้องชั่วคราว ลองใหม่อีกครั้งได้เลย ถ้ายังไม่หายให้ลองรีเฟรชหน้า
       </p>
 
@@ -35,14 +35,14 @@ export default function AppError({
           แสดงเฉพาะรหัสได้ ไม่ควรแสดงข้อความ error จริงให้ผู้ใช้เห็น
           เพราะอาจหลุดชื่อตาราง ชื่อไฟล์ หรือโครงสร้างภายในระบบออกไป */}
       {error.digest && (
-        <p className="mt-4 font-mono text-xs text-slate-400">รหัสอ้างอิง: {error.digest}</p>
+        <p className="mt-4 font-mono text-xs text-ink-muted">รหัสอ้างอิง: {error.digest}</p>
       )}
 
       <div className="mt-6 flex justify-center gap-3">
         <button
           type="button"
           onClick={retry}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover"
         >
           ลองใหม่
         </button>
@@ -54,7 +54,7 @@ export default function AppError({
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/jobs"
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+          className="border border-line-strong px-4 py-2 text-sm text-ink hover:bg-surface-2"
         >
           กลับหน้าตำแหน่งงาน
         </a>

@@ -20,16 +20,16 @@ export async function ApplySection({ jobId }: { jobId: string }) {
   if (!user) {
     return (
       <Box>
-        <p className="text-sm text-slate-600">เข้าสู่ระบบเพื่อสมัครงานนี้</p>
+        <p className="text-sm text-ink-muted">เข้าสู่ระบบเพื่อสมัครงานนี้</p>
         <Link
           href="/login"
-          className="mt-3 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-3 inline-block bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover"
         >
           เข้าสู่ระบบ
         </Link>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-ink-muted">
           ยังไม่มีบัญชี?{" "}
-          <Link href="/register" className="text-indigo-600 hover:underline">
+          <Link href="/register" className="text-accent hover:underline">
             สมัครสมาชิก
           </Link>
         </p>
@@ -41,7 +41,7 @@ export async function ApplySection({ jobId }: { jobId: string }) {
   if (user.role === UserRole.EMPLOYER) {
     return (
       <Box>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-muted">
           บัญชีบริษัทสมัครงานไม่ได้ — ต้องใช้บัญชีผู้สมัครงาน
         </p>
       </Box>
@@ -54,20 +54,20 @@ export async function ApplySection({ jobId }: { jobId: string }) {
   if (existing) {
     return (
       <Box>
-        <p className="text-sm text-slate-600">คุณสมัครงานนี้ไปแล้ว</p>
+        <p className="text-sm text-ink-muted">คุณสมัครงานนี้ไปแล้ว</p>
         <div className="mt-3 flex items-center justify-center gap-3">
           <span
-            className={`rounded-full px-3 py-1 text-xs font-medium ${APPLICATION_STATUS_STYLE[existing.status]}`}
+            className={`px-3 py-1 text-xs font-medium ${APPLICATION_STATUS_STYLE[existing.status]}`}
           >
             {APPLICATION_STATUS_LABEL[existing.status]}
           </span>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-ink-muted">
             ส่งเมื่อ {formatFullDate(existing.createdAt)}
           </span>
         </div>
         <Link
           href="/applications"
-          className="mt-4 inline-block text-sm text-indigo-600 hover:underline"
+          className="mt-4 inline-block text-sm text-accent hover:underline"
         >
           ดูใบสมัครทั้งหมดของฉัน
         </Link>
@@ -81,6 +81,6 @@ export async function ApplySection({ jobId }: { jobId: string }) {
 
 function Box({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 text-center">{children}</div>
+    <div className="border border-line bg-surface p-6 text-center">{children}</div>
   );
 }

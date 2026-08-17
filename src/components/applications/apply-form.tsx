@@ -43,9 +43,9 @@ export function ApplyForm({ jobId }: { jobId: string }) {
   // สมัครสำเร็จแล้วไม่ต้องโชว์ฟอร์มอีก
   if (state.success) {
     return (
-      <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-        <p className="font-medium text-green-900">{state.success}</p>
-        <a href="/applications" className="mt-2 inline-block text-sm text-green-700 underline">
+      <div className="border border-positive bg-positive-soft p-6 text-center">
+        <p className="font-medium text-ink">{state.success}</p>
+        <a href="/applications" className="mt-2 inline-block text-sm text-positive underline">
           ดูใบสมัครของฉัน
         </a>
       </div>
@@ -53,21 +53,21 @@ export function ApplyForm({ jobId }: { jobId: string }) {
   }
 
   return (
-    <form action={formAction} className="rounded-lg border border-slate-200 bg-white p-6">
-      <h2 className="font-semibold text-slate-900">สมัครงานนี้</h2>
+    <form action={formAction} className="border border-line bg-surface p-6">
+      <h2 className="font-semibold text-ink">สมัครงานนี้</h2>
 
       {/* jobId ต้องส่งไปกับฟอร์ม แต่ห้ามเชื่อค่านี้ฝั่ง server —
           ใครแก้ค่าใน DevTools ก็ได้ ฝั่ง server จึงเช็คซ้ำว่าประกาศนั้น PUBLISHED จริง */}
       <input type="hidden" name="jobId" value={jobId} />
 
       {state.message && (
-        <p role="alert" className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="mt-4 bg-critical-soft px-3 py-2 text-sm text-critical">
           {state.message}
         </p>
       )}
 
       <div className="mt-4">
-        <label htmlFor="resume" className="block text-sm font-medium text-slate-700">
+        <label htmlFor="resume" className="block text-sm font-medium text-ink">
           ไฟล์ resume (PDF ไม่เกิน 2 MB)
         </label>
         <input
@@ -80,16 +80,16 @@ export function ApplyForm({ jobId }: { jobId: string }) {
           required
           onChange={checkSize}
           aria-invalid={Boolean(state.fieldErrors?.resume ?? localError)}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm"
+          className="mt-1 w-full cursor-pointer border border-line-strong bg-surface px-3 py-2.5 text-sm transition-colors focus:border-accent file:mr-3 file:cursor-pointer file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-sm file:text-paper"
         />
         {(localError ?? state.fieldErrors?.resume?.[0]) && (
-          <p className="mt-1 text-xs text-red-600">{localError ?? state.fieldErrors?.resume?.[0]}</p>
+          <p className="mt-1 text-xs text-critical">{localError ?? state.fieldErrors?.resume?.[0]}</p>
         )}
       </div>
 
       <div className="mt-4">
-        <label htmlFor="coverLetter" className="block text-sm font-medium text-slate-700">
-          จดหมายแนะนำตัว <span className="text-slate-400">(ไม่บังคับ)</span>
+        <label htmlFor="coverLetter" className="block text-sm font-medium text-ink">
+          จดหมายแนะนำตัว <span className="text-ink-muted">(ไม่บังคับ)</span>
         </label>
         <textarea
           id="coverLetter"
@@ -98,17 +98,17 @@ export function ApplyForm({ jobId }: { jobId: string }) {
           maxLength={2000}
           placeholder="เล่าสั้น ๆ ว่าทำไมคุณเหมาะกับตำแหน่งนี้"
           aria-invalid={Boolean(state.fieldErrors?.coverLetter)}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+          className="mt-1 w-full border border-line-strong px-3 py-2 text-sm outline-none focus:border-accent"
         />
         {state.fieldErrors?.coverLetter && (
-          <p className="mt-1 text-xs text-red-600">{state.fieldErrors.coverLetter[0]}</p>
+          <p className="mt-1 text-xs text-critical">{state.fieldErrors.coverLetter[0]}</p>
         )}
       </div>
 
       <button
         type="submit"
         disabled={isPending}
-        className="mt-4 w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+        className="mt-4 w-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-on transition-colors hover:bg-accent-hover disabled:opacity-60"
       >
         {isPending ? "กำลังส่งใบสมัคร..." : "ส่งใบสมัคร"}
       </button>

@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6">
-      <h1 className="text-xl font-bold text-slate-900">สมัครสมาชิก</h1>
-      <p className="mt-1 mb-6 text-sm text-slate-600">
+    <div className="border border-line bg-surface p-6">
+      <h1 className="text-xl font-bold text-ink">สมัครสมาชิก</h1>
+      <p className="mt-1 mb-6 text-sm text-ink-muted">
         มีบัญชีอยู่แล้ว?{" "}
-        <Link href="/login" className="text-indigo-600 hover:underline">
+        <Link href="/login" className="text-accent hover:underline">
           เข้าสู่ระบบ
         </Link>
       </p>

@@ -29,18 +29,18 @@ export default async function EditJobPage(props: PageProps<"/employer/jobs/[id]/
 
   return (
     <div className="max-w-2xl">
-      <Link href="/employer/jobs" className="text-sm text-indigo-600 hover:underline">
+      <Link href="/employer/jobs" className="text-sm text-accent hover:underline">
         ← กลับไปหน้าประกาศงาน
       </Link>
 
       <div className="mt-4 flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-slate-900">แก้ไขประกาศงาน</h1>
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+        <h1 className="text-2xl font-bold text-ink">แก้ไขประกาศงาน</h1>
+        <span className="bg-surface-2 px-2 py-0.5 text-xs font-medium text-ink-muted">
           {JOB_STATUS_LABEL[job.status]}
         </span>
       </div>
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
+      <div className="mt-6 border border-line bg-surface p-6">
         <JobForm job={job} action={updateJob} submitLabel="บันทึกการแก้ไข" />
       </div>
     </div>

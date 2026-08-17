@@ -37,27 +37,27 @@ export default async function JobApplicationsPage(
 
   return (
     <div>
-      <Link href="/employer/jobs" className="text-sm text-indigo-600 hover:underline">
+      <Link href="/employer/jobs" className="text-sm text-accent hover:underline">
         ← กลับไปหน้าจัดการประกาศ
       </Link>
 
       <div className="mt-4 mb-6">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">{job.title}</h1>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+          <h1 className="text-2xl font-bold text-ink">{job.title}</h1>
+          <span className="bg-surface-2 px-3 py-1 text-xs text-ink-muted">
             {JOB_STATUS_LABEL[job.status]}
           </span>
         </div>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-ink-muted">
           ผู้สมัครทั้งหมด {applications.length} คน · อยู่ระหว่างพิจารณา {activeTotal} คน ·
           ไม่ผ่าน {counts.REJECTED} คน · ถอนเอง {counts.WITHDRAWN} คน
         </p>
       </div>
 
       {applications.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="font-medium text-slate-900">ยังไม่มีใครสมัครงานนี้</p>
-          <p className="mt-1 text-sm text-slate-600">
+        <div className="border border-dashed border-line-strong bg-surface p-10 text-center">
+          <p className="font-medium text-ink">ยังไม่มีใครสมัครงานนี้</p>
+          <p className="mt-1 text-sm text-ink-muted">
             {job.status === "PUBLISHED"
               ? "ประกาศเผยแพร่อยู่แล้ว รอผู้สมัครเข้ามา"
               : "ประกาศนี้ยังไม่ถูกเผยแพร่ ผู้สมัครจึงยังมองไม่เห็น"}

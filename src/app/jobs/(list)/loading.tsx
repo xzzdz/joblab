@@ -15,21 +15,21 @@ export default function JobsLoading() {
   return (
     <div>
       <div className="mb-6">
-        <div className="h-8 w-56 animate-pulse rounded bg-slate-200" />
-        <div className="mt-2 h-4 w-40 animate-pulse rounded bg-slate-200" />
+        <div className="h-8 w-56 animate-pulse bg-surface-2" />
+        <div className="mt-2 h-4 w-40 animate-pulse bg-surface-2" />
       </div>
 
       <ul className="grid gap-4">
         {Array.from({ length: 5 }).map((_, index) => (
-          <li key={index} className="rounded-lg border border-slate-200 bg-white p-5">
-            <div className="h-5 w-2/3 animate-pulse rounded bg-slate-200" />
-            <div className="mt-2 h-4 w-1/3 animate-pulse rounded bg-slate-200" />
+          <li key={index} className="border border-line bg-surface p-5">
+            <div className="h-5 w-2/3 animate-pulse bg-surface-2" />
+            <div className="mt-2 h-4 w-1/3 animate-pulse bg-surface-2" />
             <div className="mt-3 flex gap-2">
-              <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100" />
-              <div className="h-6 w-20 animate-pulse rounded-full bg-slate-100" />
-              <div className="h-6 w-20 animate-pulse rounded-full bg-slate-100" />
+              <div className="h-6 w-24 animate-pulse bg-surface-2" />
+              <div className="h-6 w-20 animate-pulse bg-surface-2" />
+              <div className="h-6 w-20 animate-pulse bg-surface-2" />
             </div>
-            <div className="mt-3 h-4 w-48 animate-pulse rounded bg-slate-200" />
+            <div className="mt-3 h-4 w-48 animate-pulse bg-surface-2" />
           </li>
         ))}
       </ul>

@@ -18,7 +18,7 @@ export default async function EmployerLayout({ children }: LayoutProps<"/employe
 
   return (
     <div>
-      <nav className="mb-6 flex gap-1 border-b border-slate-200">
+      <nav className="mb-6 flex gap-1 border-b border-line">
         <TabLink href="/employer">ข้อมูลบริษัท</TabLink>
         <TabLink href="/employer/jobs">ประกาศงาน</TabLink>
       </nav>
@@ -31,7 +31,7 @@ function TabLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="-mb-px border-b-2 border-transparent px-4 py-2 text-sm text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+      className="-mb-px border-b-2 border-transparent px-4 py-2 text-sm text-ink-muted hover:border-accent hover:text-accent"
     >
       {children}
     </Link>
