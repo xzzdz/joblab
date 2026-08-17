@@ -3,7 +3,23 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 import { prisma } from "@/lib/prisma";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { loginSchema } from "@/lib/validation/auth";
+
+/**
+ * เพดานการลองล็อกอิน — ต้องตรงกับค่าที่ใช้แสดงข้อความใน src/lib/actions/auth.ts
+ *
+ * **ทำไมด่านนี้ต้องอยู่ที่ authorize() ไม่ใช่แค่ที่ Server Action ของฟอร์ม**
+ * ตอนแรกวางไว้ที่ loginAction อย่างเดียว แล้วทดสอบพบว่ายิงตรงไปที่
+ * `/api/auth/callback/credentials` ผ่านฉลุยทั้ง 8 ครั้ง เพราะ endpoint นั้นเป็นของ Auth.js
+ * ไม่ได้วิ่งผ่าน action ของเราเลย — ซึ่งเป็นทางที่คนเขียนสคริปต์ไล่เดารหัสผ่านจะใช้จริง
+ *
+ * authorize() คือจุดร่วมที่การล็อกอินทุกเส้นทางต้องผ่าน จึงเป็นที่เดียวที่กันได้ครบ
+ * หลักการเดียวกับที่เอาเงื่อนไขสิทธิ์ไปไว้ใน where ของ query: วางด่านไว้ตรงที่เลี่ยงไม่ได้
+ */
+export const LOGIN_WINDOW_MS = 10 * 60 * 1000;
+export const LOGIN_MAX_PER_IP = 10;
+export const LOGIN_MAX_PER_EMAIL = 5;
 
 /**
  * แฮชหลอกสำหรับกรณี "ไม่พบอีเมลนี้ในระบบ"
@@ -46,10 +62,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const { email, password } = parsed.data;
+        const { password } = parsed.data;
+        const email = parsed.data.email.toLowerCase();
+
+        /**
+         * นับ 2 แกนพร้อมกัน เพราะกันคนละแบบ:
+         *   - ต่อ IP  → กันคนเดียวไล่เดารหัสผ่านของหลาย ๆ บัญชี
+         *   - ต่ออีเมล → กันการระดมยิงจากหลาย IP มาที่บัญชีเดียว (credential stuffing)
+         *
+         * เกินโควตาแล้วคืน null เหมือนกรณีรหัสผ่านผิดทุกประการ
+         * ไม่บอกว่า "ถูกจำกัดชั่วคราว" เพราะนั่นคือการยืนยันว่ามีคนสนใจบัญชีนี้อยู่
+         * (ข้อความที่อ่านเข้าใจง่ายกว่าแสดงที่หน้าฟอร์มแทน ดู loginAction)
+         */
+        const ip = await getClientIp();
+        const byIp = rateLimit(`login:ip:${ip}`, LOGIN_MAX_PER_IP, LOGIN_WINDOW_MS);
+        const byEmail = rateLimit(`login:email:${email}`, LOGIN_MAX_PER_EMAIL, LOGIN_WINDOW_MS);
+        if (!byIp.allowed || !byEmail.allowed) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: email.toLowerCase() },
+          where: { email },
           select: { id: true, email: true, name: true, role: true, passwordHash: true },
         });
 

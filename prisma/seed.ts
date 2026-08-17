@@ -1,9 +1,5 @@
 import "dotenv/config";
 
-import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 
@@ -343,21 +339,8 @@ trailer<</Root 1 0 R>>
 %%EOF
 `;
 
-/**
- * เขียนไฟล์ resume ตัวอย่างลงที่เก็บเดียวกับที่แอปใช้
- *
- * ทำไมไม่ import saveResume จาก src/lib/storage.ts มาใช้ซ้ำ:
- * ไฟล์นั้นมี `import "server-only"` ซึ่งออกแบบมาให้ทำงานในบริบทของ Next.js
- * ส่วน seed รันด้วย tsx ธรรมดา อยู่นอก Next — เลยเขียนตรง ๆ ที่นี่แทน
- * ต้องระวังว่าถ้าเปลี่ยนที่เก็บใน storage.ts ต้องมาแก้ตรงนี้ด้วย
- */
-async function writeSampleResume(): Promise<string> {
-  const dir = path.join(process.cwd(), ".uploads", "resumes");
-  const key = `${randomUUID()}.pdf`;
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, key), SAMPLE_PDF, "utf8");
-  return key;
-}
+/** เนื้อไฟล์ตัวอย่างในรูปแบบที่พร้อมบันทึกลงคอลัมน์ BYTEA (Prisma 7 ต้องการ Uint8Array) */
+const SAMPLE_PDF_BYTES = new TextEncoder().encode(SAMPLE_PDF);
 
 function daysAgoToDate(days: number): Date {
   const date = new Date();
@@ -399,27 +382,37 @@ async function seedApplications(seekerId: string, passwordHash: string) {
 
     const existing = await prisma.application.findUnique({
       where: { jobId_seekerId: { jobId: boardJob.id, seekerId: user.id } },
-      select: { id: true },
+      select: { id: true, resume: { select: { id: true } } },
     });
 
-    // สร้างไฟล์ใหม่เฉพาะตอนที่ยังไม่มีใบสมัคร กัน .uploads บวมทุกครั้งที่รัน seed
     if (!existing) {
       await prisma.application.create({
         data: {
           jobId: boardJob.id,
           seekerId: user.id,
           coverLetter: applicant.note,
-          resumeKey: await writeSampleResume(),
           resumeName: `resume-${user.name}.pdf`,
           status: applicant.status,
+          resume: { create: { data: SAMPLE_PDF_BYTES, size: SAMPLE_PDF_BYTES.byteLength } },
         },
       });
       created += 1;
     } else {
-      // มีอยู่แล้วก็แค่ปรับสถานะให้ตรงกับที่ตั้งใจไว้ ไม่ต้องแตะไฟล์
+      // มีอยู่แล้วก็แค่ปรับสถานะให้ตรงกับที่ตั้งใจไว้
+      // แต่ถ้าไฟล์หายไป (เช่นเพิ่งย้ายที่เก็บจากดิสก์มา DB) ให้เติมกลับให้ด้วย
       await prisma.application.update({
         where: { id: existing.id },
-        data: { status: applicant.status, coverLetter: applicant.note },
+        data: {
+          status: applicant.status,
+          coverLetter: applicant.note,
+          ...(existing.resume
+            ? {}
+            : {
+                resume: {
+                  create: { data: SAMPLE_PDF_BYTES, size: SAMPLE_PDF_BYTES.byteLength },
+                },
+              }),
+        },
       });
     }
   }
@@ -436,7 +429,7 @@ async function seedApplications(seekerId: string, passwordHash: string) {
   for (const [index, job] of otherJobs.entries()) {
     const existing = await prisma.application.findUnique({
       where: { jobId_seekerId: { jobId: job.id, seekerId } },
-      select: { id: true },
+      select: { id: true, resume: { select: { id: true } } },
     });
 
     if (!existing) {
@@ -445,12 +438,19 @@ async function seedApplications(seekerId: string, passwordHash: string) {
           jobId: job.id,
           seekerId,
           coverLetter: "สนใจตำแหน่งนี้ครับ แนบ resume มาให้พิจารณาแล้ว",
-          resumeKey: await writeSampleResume(),
           resumeName: "resume-กิตติกร.pdf",
           status: index === 0 ? ApplicationStatus.INTERVIEW : ApplicationStatus.APPLIED,
+          resume: { create: { data: SAMPLE_PDF_BYTES, size: SAMPLE_PDF_BYTES.byteLength } },
         },
       });
       created += 1;
+    } else if (!existing.resume) {
+      await prisma.application.update({
+        where: { id: existing.id },
+        data: {
+          resume: { create: { data: SAMPLE_PDF_BYTES, size: SAMPLE_PDF_BYTES.byteLength } },
+        },
+      });
     }
   }
 

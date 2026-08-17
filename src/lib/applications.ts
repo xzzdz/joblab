@@ -87,11 +87,14 @@ export async function getApplicationsForJob(ownerId: string, jobId: string) {
 export type JobApplicationItem = Awaited<ReturnType<typeof getApplicationsForJob>>[number];
 
 /**
- * ใบสมัครหนึ่งใบ พร้อมข้อมูลที่ต้องใช้ตัดสินสิทธิ์การเข้าถึงไฟล์ resume
- * ใช้ในหน้าดาวน์โหลด — คืน null ถ้าผู้ใช้คนนี้ไม่ใช่ทั้งเจ้าของใบสมัครและไม่ใช่บริษัทผู้รับสมัคร
+ * ไฟล์ resume ของใบสมัครหนึ่งใบ พร้อมเช็คสิทธิ์ไปในตัว
+ * คืน null ถ้าผู้ใช้คนนี้ไม่ใช่ทั้งเจ้าของใบสมัครและไม่ใช่บริษัทผู้รับสมัคร
+ *
+ * นี่เป็นที่เดียวในโปรเจคที่ดึงคอลัมน์ `data` (ไฟล์จริง) ออกมา
+ * ที่อื่นไม่มีทางเผลอลากไฟล์ออกมา เพราะมันอยู่คนละตารางและต้องตั้งใจ join
  */
-export async function getApplicationForViewer(userId: string, applicationId: string) {
-  return prisma.application.findFirst({
+export async function getResumeForViewer(userId: string, applicationId: string) {
+  const application = await prisma.application.findFirst({
     where: {
       id: applicationId,
       OR: [
@@ -99,8 +102,20 @@ export async function getApplicationForViewer(userId: string, applicationId: str
         { job: { company: { ownerId: userId } } }, // บริษัทที่รับสมัคร
       ],
     },
-    select: { id: true, resumeKey: true, resumeName: true },
+    select: {
+      id: true,
+      resumeName: true,
+      resume: { select: { data: true, size: true } },
+    },
   });
+
+  if (!application?.resume) return null;
+
+  return {
+    fileName: application.resumeName,
+    data: application.resume.data,
+    size: application.resume.size,
+  };
 }
 
 /** นับใบสมัครแยกตามสถานะ สำหรับสรุปหัวบอร์ด */

@@ -6,6 +6,7 @@
 >
 > 📘 **เพิ่งเข้ามาอ่านครั้งแรก → [docs/GUIDE.md](docs/GUIDE.md)** — อธิบายโครงสร้าง หลักคิด และคำสั่งทั้งหมด
 > 📋 อยากรู้ว่าทำถึงไหนแล้ว → [docs/PROGRESS.md](docs/PROGRESS.md)
+> 🚀 จะขึ้น production → [docs/DEPLOY.md](docs/DEPLOY.md)
 
 ## เทคโนโลยีที่ใช้
 
@@ -60,6 +61,8 @@ npm run dev
 | `npm run build` | build สำหรับ production |
 | `npm run lint` | ตรวจโค้ดด้วย ESLint |
 | `npm run typecheck` | ตรวจ type ด้วย TypeScript |
+| `npm run test` | รันเทสต์ (Vitest) |
+| `npm run test:watch` | รันเทสต์ใหม่อัตโนมัติตอนแก้โค้ด |
 | `npm run db:up` / `db:down` | เปิด/ปิด Postgres ใน Docker |
 | `npm run db:migrate` | สร้าง migration หลังแก้ `prisma/schema.prisma` |
 | `npm run db:seed` | ใส่ข้อมูลตัวอย่าง (รันซ้ำได้) |
@@ -99,4 +102,5 @@ src/
 - [x] บริษัทลงประกาศงาน แก้ไข เผยแพร่ ปิดรับ และลบ
 - [x] ค้นหา กรอง และแบ่งหน้า (ตัวกรองอยู่ใน URL ทั้งหมด)
 - [x] สมัครงานพร้อมแนบ resume + ติดตามสถานะแบบ Kanban
+- [x] ขัดให้พร้อมใช้จริง: error page, rate limit, security headers, เทสต์ 50 ข้อ, CI
 - [ ] สมัครงาน + ติดตามสถานะแบบ Kanban

@@ -1,0 +1,62 @@
+name: CI
+
+# รันทุกครั้งที่ push ขึ้น main และทุก pull request
+# จุดประสงค์: จับของพังตั้งแต่ยังอยู่บน GitHub ไม่ใช่ตอน deploy ไปแล้ว
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # เทสต์บางส่วนต่อฐานข้อมูลจริง (tests/authorization.test.ts)
+    # เพราะสิ่งที่เทสต์คือเงื่อนไข where ของ Prisma ถ้า mock ทิ้งก็ไม่ได้พิสูจน์อะไร
+    # GitHub Actions จึงต้องมี Postgres ให้ใช้ระหว่างรัน
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: joblab
+          POSTGRES_PASSWORD: joblab
+          POSTGRES_DB: joblab
+        ports:
+          - 5433:5432
+        # รอจน Postgres พร้อมจริงก่อนเริ่ม job ไม่งั้น migrate จะล้มเพราะต่อไม่ติด
+        options: >-
+          --health-cmd "pg_isready -U joblab"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://joblab:joblab@localhost:5433/joblab?schema=public
+      # ค่าปลอมสำหรับ CI เท่านั้น — ของจริงอยู่ใน environment ของ Vercel
+      AUTH_SECRET: ci-only-secret-not-used-anywhere-else
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          # แคช node_modules ตาม package-lock.json ทำให้รอบถัดไปเร็วขึ้นมาก
+          cache: npm
+
+      # npm ci ติดตั้งตาม package-lock.json เป๊ะ ๆ (ต่างจาก npm install ที่อัปเวอร์ชันได้)
+      # CI ต้องได้ dependency ชุดเดียวกับที่เราทดสอบบนเครื่องเสมอ
+      - run: npm ci
+
+      # สร้างตารางจริงจาก migration ที่ commit ไว้
+      # ใช้ migrate deploy ไม่ใช่ migrate dev เพราะ deploy ไม่โต้ตอบและไม่สร้าง migration ใหม่
+      - run: npx prisma migrate deploy
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      - run: npm run test
+
+      # build ไว้ท้ายสุดเพราะช้าที่สุด — ให้ error ที่เจอง่ายกว่าเด้งออกมาก่อน
+      - run: npm run build

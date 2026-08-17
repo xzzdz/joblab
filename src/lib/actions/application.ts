@@ -8,7 +8,7 @@ import { ApplicationStatus, JobStatus, UserRole } from "@/generated/prisma/enums
 import { requireRole } from "@/lib/dal";
 import type { FormState } from "@/lib/form-state";
 import { prisma } from "@/lib/prisma";
-import { InvalidFileError, deleteResume, saveResume } from "@/lib/storage";
+import { InvalidFileError, validateResume } from "@/lib/storage";
 import { applySchema, updateApplicationStatusSchema } from "@/lib/validation/application";
 
 /**
@@ -59,9 +59,9 @@ export async function applyToJobAction(
     return { fieldErrors: { resume: ["กรุณาแนบไฟล์ resume"] } };
   }
 
-  let stored;
+  let resume;
   try {
-    stored = await saveResume(file);
+    resume = await validateResume(file);
   } catch (error) {
     if (error instanceof InvalidFileError) {
       return { fieldErrors: { resume: [error.message] } };
@@ -70,21 +70,28 @@ export async function applyToJobAction(
   }
 
   try {
+    /**
+     * สร้างใบสมัครและไฟล์ให้เป็นก้อนเดียวกัน
+     *
+     * Prisma เขียนแบบ nested create ให้อยู่ใน transaction เดียวกันอัตโนมัติ
+     * แปลว่าเป็นไปไม่ได้ที่จะเกิดใบสมัครที่ไม่มีไฟล์ หรือไฟล์ที่ไม่มีใบสมัคร
+     * ต่างจากตอนเก็บลงดิสก์ที่ต้องเขียนโค้ดลบไฟล์ทิ้งเองใน catch เพราะดิสก์
+     * ไม่ได้อยู่ใน transaction เดียวกับ DB
+     */
     await prisma.application.create({
       data: {
         jobId: job.id,
         seekerId: seeker.id,
         coverLetter,
-        resumeKey: stored.key,
-        resumeName: stored.originalName,
+        resumeName: resume.displayName,
+        resume: {
+          create: { data: resume.bytes, size: resume.size },
+        },
       },
     });
   } catch (error) {
-    // ไฟล์ถูกเขียนลงดิสก์ไปแล้วก่อนหน้านี้ ถ้าบันทึกลง DB ไม่สำเร็จต้องเก็บกวาด
-    // ไม่งั้นจะเหลือไฟล์ขยะที่ไม่มีใครอ้างถึง (orphan) สะสมไปเรื่อย ๆ
-    await deleteResume(stored.key);
-
     // P2002 = ชน unique constraint [jobId, seekerId] → เคยสมัครงานนี้ไปแล้ว
+    // ไม่ต้องเก็บกวาดอะไรแล้ว เพราะ transaction ย้อนกลับให้เองทั้งก้อน
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { message: "คุณสมัครงานนี้ไปแล้ว" };
     }
