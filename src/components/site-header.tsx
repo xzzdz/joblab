@@ -26,7 +26,9 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
-          <NavLink href="/jobs">ตำแหน่งงาน</NavLink>
+          <span className="hidden sm:block">
+            <NavLink href="/jobs">ตำแหน่งงาน</NavLink>
+          </span>
 
           {user ? (
             <>
@@ -37,7 +39,10 @@ export async function SiteHeader() {
               )}
 
               {user.role === UserRole.SEEKER && (
-                <NavLink href="/applications">ใบสมัครของฉัน</NavLink>
+                <>
+                  <NavLink href="/saved">บันทึกไว้</NavLink>
+                  <NavLink href="/applications">ใบสมัครของฉัน</NavLink>
+                </>
               )}
 
               <NavLink href="/account">{user.name}</NavLink>
@@ -45,7 +50,7 @@ export async function SiteHeader() {
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="h-11 cursor-pointer px-3 text-sm text-ink-muted transition-colors hover:text-accent"
+                  className="h-11 cursor-pointer px-2 text-sm whitespace-nowrap text-ink-muted transition-colors hover:text-accent sm:px-3"
                 >
                   ออกจากระบบ
                 </button>
@@ -56,7 +61,7 @@ export async function SiteHeader() {
               <NavLink href="/login">เข้าสู่ระบบ</NavLink>
               <Link
                 href="/register"
-                className="flex h-11 items-center bg-ink px-4 text-sm font-medium text-paper transition-colors hover:bg-accent"
+                className="flex h-11 items-center bg-ink px-3 text-sm font-medium whitespace-nowrap text-paper transition-colors hover:bg-accent sm:px-4"
               >
                 สมัครสมาชิก
               </Link>
@@ -78,7 +83,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="flex h-11 items-center px-3 text-sm text-ink-muted transition-colors hover:text-accent"
+      className="flex h-11 items-center px-2 text-sm whitespace-nowrap text-ink-muted transition-colors hover:text-accent sm:px-3"
     >
       {children}
     </Link>

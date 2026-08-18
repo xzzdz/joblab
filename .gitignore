@@ -51,3 +51,7 @@ next-env.d.ts
 
 # ไฟล์ที่ผู้ใช้อัปโหลดตอน dev (resume) — ห้ามขึ้น git เด็ดขาด เป็นข้อมูลส่วนบุคคล
 .uploads/
+
+# ผลลัพธ์ของ Playwright — เป็นไฟล์ที่สร้างใหม่ได้ทุกครั้งที่รันเทสต์
+/test-results/
+/playwright-report/

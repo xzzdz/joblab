@@ -30,8 +30,8 @@ export default async function HomePage() {
           ดีกว่าการกำหนดขนาดเป็นขั้น ๆ ตาม breakpoint เพราะไม่มีจุดที่ตัวหนังสือ "กระโดด"
         */}
         <h1
-          className="mt-4 font-bold tracking-tight text-balance"
-          style={{ fontSize: "clamp(2.25rem, 7vw, 4.5rem)", lineHeight: 1.05 }}
+          className="display-th mt-4 font-bold text-balance"
+          style={{ fontSize: "clamp(2.25rem, 7vw, 4.5rem)" }}
         >
           หางานที่ใช่
           <br />
@@ -144,7 +144,7 @@ function Stat({
 }) {
   return (
     <div className={`px-2 py-8 text-center ${className}`}>
-      <p className="font-mono text-4xl font-medium tabular-nums">{value}</p>
+      <p className="num text-4xl font-medium">{value}</p>
       <p className="label-mono mt-2 text-ink-muted">{label}</p>
     </div>
   );

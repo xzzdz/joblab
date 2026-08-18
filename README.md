@@ -11,7 +11,7 @@
 | `seeker@joblab.dev` | ค้นหางาน · สมัครงานพร้อมแนบ PDF · ติดตามสถานะใบสมัคร | `Password123!` |
 | `employer@joblab.dev` | ลงประกาศงาน · บอร์ด Kanban ดูผู้สมัคร · เปิด resume | `Password123!` |
 
-> โปรเจคนี้ทำเพื่อฝึกและเก็บเป็นผลงาน แบ่งงานเป็น 6 Phase
+> โปรเจคนี้ทำเพื่อฝึกและเก็บเป็นผลงาน
 >
 > 📘 **เพิ่งเข้ามาอ่านครั้งแรก → [docs/GUIDE.md](docs/GUIDE.md)** — อธิบายโครงสร้าง หลักคิด และคำสั่งทั้งหมด
 > 📋 อยากรู้ว่าทำถึงไหนแล้ว → [docs/PROGRESS.md](docs/PROGRESS.md)
@@ -28,6 +28,7 @@
 | UI | Tailwind CSS v4 | |
 | Auth | Auth.js v5 + bcrypt | session cookie แบบ HttpOnly, รหัสผ่านเก็บเป็นแฮชเท่านั้น |
 | Validation | Zod | schema เดียวใช้ตรวจทั้ง client และ server |
+| เทสต์ | Vitest + Playwright | Vitest ทดสอบตรรกะ · Playwright กดปุ่มจริงในเบราว์เซอร์ |
 | Dev DB | Docker Compose | ไม่ต้องติดตั้ง Postgres ลงเครื่อง ลบทิ้งได้ทุกเมื่อ |
 
 ## เริ่มใช้งาน
@@ -63,8 +64,9 @@ npm run dev
 | `npm run build` | build สำหรับ production |
 | `npm run lint` | ตรวจโค้ดด้วย ESLint |
 | `npm run typecheck` | ตรวจ type ด้วย TypeScript |
-| `npm run test` | รันเทสต์ (Vitest) |
+| `npm run test` | รันเทสต์ (Vitest — 81 ข้อ) |
 | `npm run test:watch` | รันเทสต์ใหม่อัตโนมัติตอนแก้โค้ด |
+| `npm run test:e2e` | รันเทสต์แบบกดปุ่มจริงในเบราว์เซอร์ (Playwright — 10 ข้อ) |
 | `npm run db:up` / `db:down` | เปิด/ปิด Postgres ใน Docker |
 | `npm run db:migrate` | สร้าง migration หลังแก้ `prisma/schema.prisma` |
 | `npm run db:seed` | ใส่ข้อมูลตัวอย่าง (รันซ้ำได้) |
@@ -85,6 +87,8 @@ src/
     (auth)/               หน้า login และ register
     account/              หน้าบัญชีผู้ใช้ (ต้องล็อกอิน)
     api/auth/             route handler ของ Auth.js
+    saved/                งานที่บันทึกไว้
+    companies/[slug]/     โปรไฟล์บริษัท
   components/             React component ที่ใช้ซ้ำ
   lib/
     prisma.ts             Prisma Client singleton
@@ -92,8 +96,13 @@ src/
     dal.ts                ด่านตรวจสิทธิ์จริง — requireUser / requireRole
     jobs.ts               query ทั้งหมดที่เกี่ยวกับงาน
     format.ts             ฟังก์ชันแปลงข้อมูลเป็นข้อความไทย
+    saved-jobs.ts         query งานที่บันทึกไว้
+    password-reset.ts     ตรรกะตั้งรหัสผ่านใหม่ (token เก็บเป็นแฮช)
+    email.ts              ส่งอีเมล (ไม่มี key ก็พิมพ์ลง console)
     actions/              Server Actions
     validation/           Zod schema
+e2e/                      เทสต์ที่กดปุ่มจริงในเบราว์เซอร์ (Playwright)
+tests/                    เทสต์ที่ต่อฐานข้อมูลจริง (Vitest)
 ```
 
 ## สถานะฟีเจอร์
@@ -104,5 +113,8 @@ src/
 - [x] บริษัทลงประกาศงาน แก้ไข เผยแพร่ ปิดรับ และลบ
 - [x] ค้นหา กรอง และแบ่งหน้า (ตัวกรองอยู่ใน URL ทั้งหมด)
 - [x] สมัครงานพร้อมแนบ resume + ติดตามสถานะแบบ Kanban
-- [x] ขัดให้พร้อมใช้จริง: error page, rate limit, security headers, เทสต์ 50 ข้อ, CI
-- [ ] สมัครงาน + ติดตามสถานะแบบ Kanban
+- [x] ขัดให้พร้อมใช้จริง: error page, rate limit, security headers, CI
+- [x] SEO: sitemap, robots.txt, structured data สำหรับ Google Jobs
+- [x] ธีม Swiss Editorial + โหมดมืด (ทุกสีผ่านการคำนวณ contrast)
+- [x] บันทึกงานที่สนใจ · ลืมรหัสผ่าน · รองรับล็อกอินด้วย Google
+- [x] เทสต์ 91 ข้อ (Vitest 81 + Playwright 10)

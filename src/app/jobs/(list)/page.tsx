@@ -4,7 +4,10 @@ import Link from "next/link";
 import { JobCard } from "@/components/job-card";
 import { JobFiltersForm } from "@/components/job-filters";
 import { Pagination } from "@/components/pagination";
+import { UserRole } from "@/generated/prisma/enums";
+import { getCurrentUser } from "@/lib/dal";
 import { getPublishedJobLocations, searchPublishedJobs } from "@/lib/jobs";
+import { getSavedJobIds } from "@/lib/saved-jobs";
 import { hasActiveFilters, parseJobFilters } from "@/lib/validation/job-filters";
 
 export const metadata: Metadata = {
@@ -25,22 +28,34 @@ export default async function JobsPage(props: PageProps<"/jobs">) {
   const searchParams = await props.searchParams;
   const filters = parseJobFilters(searchParams);
 
-  const [result, locations] = await Promise.all([
+  const [result, locations, user] = await Promise.all([
     searchPublishedJobs(filters),
     getPublishedJobLocations(),
+    getCurrentUser(),
   ]);
+
+  /**
+   * ถาม DB ครั้งเดียวว่างานในหน้านี้อันไหนถูกบันทึกไว้แล้ว
+   * ถ้าให้การ์ดแต่ละใบไปถามเอง จะยิง query เท่ากับจำนวนการ์ด (ปัญหา N+1)
+   *
+   * ปุ่มบันทึกแสดงเฉพาะผู้สมัครงานที่ล็อกอินแล้ว — บัญชีบริษัทไม่มีเหตุต้องใช้
+   */
+  const canSave = user?.role === UserRole.SEEKER;
+  const savedIds = canSave
+    ? await getSavedJobIds(user.id, result.jobs.map((job) => job.id))
+    : new Set<string>();
 
   return (
     <div>
       <div className="mb-6 border-b border-line pb-6">
         <p className="label-mono text-accent">ค้นหางาน</p>
         <h1
-          className="mt-3 font-bold tracking-tight"
-          style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", lineHeight: 1.1 }}
+          className="display-th mt-3 font-bold"
+          style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
         >
           ตำแหน่งงานทั้งหมด
         </h1>
-        <p className="mt-2 font-mono text-sm tabular-nums text-ink-muted">
+        <p className="mt-2 num text-sm text-ink-muted">
           {result.total > 0
             ? `พบ ${result.total.toLocaleString("th-TH")} ตำแหน่งที่ตรงกับเงื่อนไข`
             : "ไม่พบตำแหน่งที่ตรงกับเงื่อนไข"}
@@ -57,7 +72,11 @@ export default async function JobsPage(props: PageProps<"/jobs">) {
         <>
           <ul className="grid gap-4">
             {result.jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard
+                key={job.id}
+                job={job}
+                savedState={canSave ? savedIds.has(job.id) : undefined}
+              />
             ))}
           </ul>
 
