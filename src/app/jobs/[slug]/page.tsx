@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 
 import { ApplySection } from "@/components/applications/apply-section";
 import { JobPostingSchema } from "@/components/job-posting-schema";
+import { SaveJobButton } from "@/components/save-job-button";
+import { UserRole } from "@/generated/prisma/enums";
+import { getCurrentUser } from "@/lib/dal";
+import { getSavedJobIds } from "@/lib/saved-jobs";
 import {
   JOB_TYPE_LABEL,
   WORK_MODE_LABEL,
@@ -41,28 +45,64 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
   // ถ้าแยกข้อความว่า "มีอยู่แต่ยังไม่เผยแพร่" เท่ากับบอกใบ้ข้อมูลภายในบริษัทให้คนนอกรู้
   if (!job) notFound();
 
+  // ปุ่มบันทึกแสดงเฉพาะผู้สมัครงานที่ล็อกอินแล้ว
+  const user = await getCurrentUser();
+  const canSave = user?.role === UserRole.SEEKER;
+  const savedIds = canSave ? await getSavedJobIds(user.id, [job.id]) : new Set<string>();
+
   return (
     <article>
       {/* ข้อมูลสำหรับ Google Jobs — ไม่แสดงบนหน้าเว็บ แต่จำเป็นต่อการถูกค้นเจอ */}
       <JobPostingSchema job={job} />
 
-      <Link href="/jobs" className="text-sm text-accent hover:underline">
-        ← กลับไปดูตำแหน่งงานทั้งหมด
+      <Link
+        href="/jobs"
+        className="label-mono text-ink-muted transition-colors hover:text-accent"
+      >
+        ← ตำแหน่งงานทั้งหมด
       </Link>
 
-      <header className="mt-4 border border-line bg-surface p-6">
-        <h1 className="text-2xl font-bold text-ink">{job.title}</h1>
-        <p className="mt-1 text-ink-muted">{job.company.name}</p>
+      <header className="mt-6 border-b border-line pb-8">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="label-mono text-accent">{JOB_TYPE_LABEL[job.type]}</span>
+          <span aria-hidden="true" className="text-line-strong">·</span>
+          <span className="label-mono text-ink-muted">{WORK_MODE_LABEL[job.workMode]}</span>
+        </div>
 
-        <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+        {/* หัวข้อของหน้านี้ควรเป็นตัวที่ใหญ่ที่สุด — เป็นสิ่งที่คนเข้ามาอ่าน
+            เดิมตั้งไว้แค่ text-2xl ซึ่งเล็กกว่าหัวข้อหน้ารายการ ทำให้ลำดับความสำคัญกลับหัว */}
+        <h1
+          className="display-th mt-3 font-bold text-balance"
+          style={{ fontSize: "clamp(1.75rem, 4.5vw, 2.75rem)" }}
+        >
+          {job.title}
+        </h1>
+
+        <p className="mt-3 text-base text-ink-muted">
+          <Link
+            href={`/companies/${job.company.slug}`}
+            className="font-medium text-ink transition-colors hover:text-accent"
+          >
+            {job.company.name}
+          </Link>
+          {" · "}
+          {job.location}
+        </p>
+
+        <dl className="mt-6 grid gap-5 border-t border-line pt-6 sm:grid-cols-3">
+          <Field label="เงินเดือน" value={formatSalaryRange(job.salaryMin, job.salaryMax)} numeric />
           <Field label="สถานที่" value={job.location} />
           <Field label="รูปแบบการทำงาน" value={WORK_MODE_LABEL[job.workMode]} />
-          <Field label="ประเภทงาน" value={JOB_TYPE_LABEL[job.type]} />
-          <Field label="เงินเดือน" value={formatSalaryRange(job.salaryMin, job.salaryMax)} />
         </dl>
 
+        {canSave && (
+          <div className="mt-6">
+            <SaveJobButton jobId={job.id} initialSaved={savedIds.has(job.id)} variant="full" />
+          </div>
+        )}
+
         {job.publishedAt && (
-          <p className="mt-5 text-xs text-ink-muted">
+          <p className="mt-6 text-xs text-ink-muted">
             เผยแพร่เมื่อ{" "}
             {/* <time> ช่วยให้ screen reader และ search engine อ่านวันที่ได้ถูกต้อง */}
             <time dateTime={job.publishedAt.toISOString()}>
@@ -72,16 +112,16 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
         )}
       </header>
 
-      <section className="mt-6 border border-line bg-surface p-6">
-        <h2 className="font-semibold text-ink">รายละเอียดงาน</h2>
+      <section className="mt-8">
+        <h2 className="text-lg font-bold tracking-tight">รายละเอียดงาน</h2>
         {/* whitespace-pre-line ทำให้ \n ใน description กลายเป็นการขึ้นบรรทัดจริง */}
         <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink">
           {job.description}
         </p>
       </section>
 
-      <section className="mt-6 border border-line bg-surface p-6">
-        <h2 className="font-semibold text-ink">เกี่ยวกับ {job.company.name}</h2>
+      <section className="mt-8">
+        <h2 className="text-lg font-bold tracking-tight">เกี่ยวกับ {job.company.name}</h2>
         {job.company.description && (
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">{job.company.description}</p>
         )}
@@ -115,11 +155,20 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[slug]">) {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({
+  label,
+  value,
+  numeric = false,
+}: {
+  label: string;
+  value: string;
+  numeric?: boolean;
+}) {
   return (
     <div>
-      <dt className="text-xs text-ink-muted">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium text-ink">{value}</dd>
+      <dt className="label-mono text-ink-muted">{label}</dt>
+      {/* ตัวเลขใช้ฟอนต์ mono ส่วนข้อความไทยใช้ฟอนต์ปกติ — ดูคำอธิบายที่ .num ใน globals.css */}
+      <dd className={`mt-1 font-medium text-ink ${numeric ? "num" : ""}`}>{value}</dd>
     </div>
   );
 }

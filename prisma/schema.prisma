@@ -62,7 +62,7 @@ model User {
 
   // เก็บ "ค่าแฮช" ของรหัสผ่านเท่านั้น ไม่เคยเก็บรหัสผ่านจริง
   // ถ้าฐานข้อมูลหลุด คนได้ไฟล์ไปก็ยังเอารหัสผ่านคืนไม่ได้
-  passwordHash String
+  passwordHash String?
 
   role UserRole @default(SEEKER)
 
@@ -71,6 +71,29 @@ model User {
 
   // ใบสมัครที่ผู้ใช้คนนี้ส่งไป (เฉพาะ role SEEKER ที่จะมีข้อมูลตรงนี้)
   applications Application[]
+
+  /// งานที่กดบันทึกไว้ดูภายหลัง
+  savedJobs SavedJob[]
+
+  /// คำขอตั้งรหัสผ่านใหม่
+  passwordResets PasswordReset[]
+
+  /**
+   * บัญชีจากผู้ให้บริการภายนอก (Google ฯลฯ)
+   *
+   * ทำไมต้องแยกตาราง ไม่ใส่ `googleId` ลงใน User เลย:
+   * ผู้ใช้คนเดียวอาจผูกได้หลายบริการ (Google + GitHub + ...) ถ้าใส่เป็นคอลัมน์
+   * ทุกครั้งที่รองรับบริการใหม่ต้องเพิ่มคอลัมน์ใหม่และแก้ทุก query ที่เกี่ยวข้อง
+   */
+  oauthAccounts OAuthAccount[]
+
+  /**
+   * ผู้ใช้ที่สมัครด้วย Google ไม่มีรหัสผ่าน จึงต้องให้ null ได้
+   *
+   * ⚠️ ผลที่ตามมาซึ่งต้องระวัง: ตอนล็อกอินด้วยรหัสผ่าน ถ้าเจอผู้ใช้ที่ passwordHash เป็น null
+   * ต้องปฏิเสธ **ห้ามเทียบกับค่า null แล้วผ่าน** ไม่งั้นใครรู้อีเมลของคนที่สมัครผ่าน Google
+   * ก็ล็อกอินเข้าบัญชีนั้นได้โดยไม่ต้องใส่รหัสผ่านเลย
+   */
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -137,6 +160,9 @@ model Job {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   applications Application[]
+
+  /// ผู้ใช้ที่กดบันทึกงานนี้ไว้
+  savedBy SavedJob[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -222,4 +248,76 @@ model ResumeFile {
   size Int
 
   createdAt DateTime @default(now())
+}
+
+/// งานที่ผู้ใช้กดบันทึกไว้ดูภายหลัง
+model SavedJob {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  /// กันบันทึกงานเดิมซ้ำที่ระดับฐานข้อมูล
+  /// สำคัญเพราะปุ่มบันทึกกดรัว ๆ ได้ การเช็คในโค้ดอย่างเดียวปิดช่อง race condition ไม่ได้
+  @@unique([userId, jobId])
+
+  /// หน้า "งานที่บันทึกไว้" กรองด้วย userId แล้วเรียงตามเวลาที่บันทึก
+  @@index([userId, createdAt])
+}
+
+/**
+ * บัญชีจากผู้ให้บริการภายนอก
+ *
+ * เก็บแค่ข้อมูลที่จำเป็นต่อการจับคู่ว่า "บัญชีของ provider นี้คือผู้ใช้คนไหนในระบบเรา"
+ * ไม่เก็บ access token เพราะเราไม่ได้เรียก API ของ Google ต่อ — ใช้แค่ยืนยันตัวตนตอนล็อกอิน
+ * เก็บสิ่งที่ไม่ใช้คือการเพิ่มความเสียหายฟรี ๆ ถ้าฐานข้อมูลหลุด
+ */
+model OAuthAccount {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// ชื่อผู้ให้บริการ เช่น "google"
+  provider String
+
+  /// id ของผู้ใช้ในระบบของผู้ให้บริการนั้น
+  providerAccountId String
+
+  createdAt DateTime @default(now())
+
+  /// บัญชีเดียวของ provider ต้องผูกกับผู้ใช้ได้คนเดียว
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+/**
+ * คำขอตั้งรหัสผ่านใหม่
+ *
+ * **เก็บเป็นค่าแฮชของ token ไม่ใช่ token จริง** — หลักการเดียวกับรหัสผ่าน
+ * ถ้าฐานข้อมูลหลุด คนที่ได้ไปจะเอา token ไปใช้ตั้งรหัสผ่านใหม่ของใครก็ได้ทันที
+ * เก็บแฮชไว้แทน แล้วตอนตรวจก็แฮชค่าที่ผู้ใช้ส่งมาเทียบ
+ */
+model PasswordReset {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// SHA-256 ของ token ที่ส่งไปในลิงก์
+  tokenHash String @unique
+
+  expiresAt DateTime
+
+  /// เวลาที่ถูกใช้ไปแล้ว — ใช้ได้ครั้งเดียวเท่านั้น
+  usedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

@@ -58,5 +58,22 @@ jobs:
 
       - run: npm run test
 
-      # build ไว้ท้ายสุดเพราะช้าที่สุด — ให้ error ที่เจอง่ายกว่าเด้งออกมาก่อน
+      # build ก่อน E2E เพราะ E2E ต้องมีแอปที่รันได้
       - run: npm run build
+
+      # ใส่ข้อมูลตัวอย่างให้ E2E มีอะไรให้กด (บัญชีทดสอบ + ประกาศงาน)
+      - run: npm run db:seed
+
+      # ติดตั้งแค่ Chromium ตัวเดียว — ครบสำหรับสิ่งที่เราทดสอบและเร็วกว่าโหลดทุกเบราว์เซอร์
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e
+
+      # เก็บ trace/screenshot ของเทสต์ที่ล้มไว้ดูย้อนหลัง
+      # (E2E ที่ล้มบน CI แต่ผ่านบนเครื่องตัวเองคือเรื่องปกติ ต้องมีหลักฐานให้ดู)
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

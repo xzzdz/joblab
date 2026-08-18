@@ -30,8 +30,8 @@ export function JobFiltersForm({
 }) {
   return (
     <div className="border border-line bg-surface p-4">
-      <form method="get" action="/jobs" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="lg:col-span-2">
+      <form method="get" action="/jobs" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="sm:col-span-2 lg:col-span-3">
           <label htmlFor="q" className="label-mono block text-ink-muted">
             ค้นหา
           </label>
@@ -102,7 +102,7 @@ export function JobFiltersForm({
           </select>
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-4">
+        <div className="lg:col-span-2">
           <label htmlFor="salary" className="label-mono block text-ink-muted">
             เงินเดือนขั้นต่ำที่ต้องการ (บาท/เดือน)
           </label>
@@ -118,7 +118,7 @@ export function JobFiltersForm({
           />
         </div>
 
-        <div className="flex items-end gap-2">
+        <div className="flex items-end lg:col-span-1">
           <button
             type="submit"
             className="h-11 w-full cursor-pointer bg-ink px-5 text-sm font-medium text-paper transition-colors hover:bg-accent"

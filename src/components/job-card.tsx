@@ -6,6 +6,7 @@ import {
   formatRelativeDate,
   formatSalaryRange,
 } from "@/lib/format";
+import { SaveJobButton } from "@/components/save-job-button";
 import type { JobListItem } from "@/lib/jobs";
 
 /**
@@ -19,7 +20,19 @@ import type { JobListItem } from "@/lib/jobs";
  *   - ข้อมูลกำกับ (ประเภทงาน/วันที่) ใช้ฟอนต์ monospace แยกชั้นจากเนื้อหาชัดเจน
  *   - เส้นสีสัญญาณด้านซ้ายจะโผล่มาตอนชี้เมาส์ ทำให้รู้ว่ากดได้โดยไม่ต้องเพิ่มเงา
  */
-export function JobCard({ job }: { job: JobListItem }) {
+export function JobCard({
+  job,
+  savedState,
+}: {
+  job: JobListItem;
+  /**
+   * สถานะการบันทึก — `undefined` แปลว่าไม่ต้องแสดงปุ่มเลย
+   * (คนที่ยังไม่ล็อกอิน หรือบัญชีบริษัท)
+   *
+   * ส่งมาจากหน้าแม่ที่ถาม DB ครั้งเดียวสำหรับทุกการ์ด ไม่ให้แต่ละการ์ดถามเอง (ปัญหา N+1)
+   */
+  savedState?: boolean;
+}) {
   return (
     <li className="group relative border border-line bg-surface transition-colors duration-200 hover:border-line-strong">
       {/*
@@ -51,10 +64,21 @@ export function JobCard({ job }: { job: JobListItem }) {
           {job.company.name} · {job.location}
         </p>
 
-        <p className="mt-4 font-mono text-sm tabular-nums text-ink">
+        <p className="mt-4 num text-sm text-ink">
           {formatSalaryRange(job.salaryMin, job.salaryMax)}
         </p>
       </Link>
+
+      {/*
+        ปุ่มบันทึกต้องอยู่ **นอก** <Link> ไม่ใช่ข้างใน
+        HTML ไม่อนุญาตให้ซ้อนองค์ประกอบที่กดได้ในลิงก์ — เบราว์เซอร์จะกดไปที่ลิงก์แทน
+        จึงวางทับด้วย absolute เอา
+      */}
+      {savedState !== undefined && (
+        <div className="absolute right-4 bottom-4">
+          <SaveJobButton jobId={job.id} initialSaved={savedState} />
+        </div>
+      )}
     </li>
   );
 }

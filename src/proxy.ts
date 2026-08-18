@@ -18,7 +18,7 @@ import { auth } from "@/lib/auth";
  */
 
 /** หน้าที่ต้องล็อกอินก่อนถึงจะเข้าได้ */
-const PROTECTED_PREFIXES = ["/account", "/employer", "/applications"];
+const PROTECTED_PREFIXES = ["/account", "/employer", "/applications", "/saved"];
 
 /** หน้าที่คนล็อกอินแล้วไม่ควรเห็นอีก */
 const GUEST_ONLY_PATHS = ["/login", "/register"];

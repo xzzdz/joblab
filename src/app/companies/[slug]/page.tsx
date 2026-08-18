@@ -37,8 +37,8 @@ export default async function CompanyPage(props: PageProps<"/companies/[slug]">)
       <header className="mt-6 border-b border-line pb-8">
         <p className="label-mono text-accent">บริษัท</p>
         <h1
-          className="mt-3 font-bold tracking-tight text-balance"
-          style={{ fontSize: "clamp(1.875rem, 5vw, 3rem)", lineHeight: 1.1 }}
+          className="display-th mt-3 font-bold text-balance"
+          style={{ fontSize: "clamp(1.875rem, 5vw, 3rem)" }}
         >
           {company.name}
         </h1>
@@ -65,7 +65,7 @@ export default async function CompanyPage(props: PageProps<"/companies/[slug]">)
       <section className="mt-10">
         <h2 className="text-xl font-bold tracking-tight">
           ตำแหน่งที่เปิดรับ{" "}
-          <span className="font-mono text-ink-muted tabular-nums">({company.jobs.length})</span>
+          <span className="num text-ink-muted">({company.jobs.length})</span>
         </h2>
 
         <ul className="mt-6 grid gap-3">
